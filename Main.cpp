@@ -604,7 +604,7 @@ int main(int argc, char** argv) {
 			time.stop("Read & decompressed " + path + " in ");
 			auto time3 = Chronograph();
 		#endif
-		path.replace(path.end() - 4, path.end(), APPEND + ".wav");
+		path.replace(path.end() - EXT.size(), path.end(), APPEND + ".wav");
 		WW.write(path);
 		#ifdef TIME
 			time3.stop("Wrote " + path + " in ");
