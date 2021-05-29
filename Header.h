@@ -25,6 +25,170 @@ typedef std::vector<real> v_real;
 
 const real PI = 3.14159265358979323846;
 
+extern "C" {
+	void SURFIT(int* iopt, int* m, double* x, double* y, double* z, double* w, double* xb, double* xe, double* yb, double* ye, int* kx, int* ky,
+		double* s, int* nxest, int* nyest, int* nmax, double* eps, int* nx, double* tx, int* ny, double* ty, double* c, double* fp,
+		double* wrk1, int* lwrk1, double* wrk2, int* lwrk2, int* iwrk, int* kwrk, int* ier);
+	void BISPEV(double* tx, int* nx, double* ty, int* ny, double* c, int* kx, int* ky, double* x, int* mx, double* y, int* my, double* z,
+		double* wrk, int* lwrk, int* iwrk, int* kwrk, int* ier);
+	void PARDER(double* tx, int* nx, double* ty, int* ny, double* c, int* kx, int* ky, int* nux, int* nuy, double* x, int* mx, double* y, int* my,
+		double* z, double* wrk, int* lwrk, int* iwrk, int* kwrk, int* ier);
+}
+
+void Fit_Bspline_Surface(std::vector<double>& x, std::vector<double>& y, std::vector<double>& z, double quality = 1.0) {
+	// Number of data points
+	int m = (int)x.size();
+
+	int nx = 100; // number of knots in the x axis
+	int ny = 100; // number of knots in the y axis
+
+	int nxest = nx; // max number of knots in the x axis
+	int nyest = ny; // max number of knots in the y axis
+	int nmax = std::max(nxest, nyest); // max number of knots
+
+	// Compute feasible spline degree
+	int k = preferredDegree;
+	if ((k + 1) * (k + 1) > m) {
+		k = (int)floor(sqrt((double)m) - 1);
+		std::cout << "WARNING:  Too few data points (" << m << ") to create B-Spline surface of order " << preferredDegree << ". Reducing order to " << k << "." << std::endl;
+	}
+
+	// Configure surfit() parameters
+	int iopt = -1;                                     // Compute a smoothing spline
+
+	// Weight 
+	double* w = new double[m];
+	std::fill(w, w + m, 1.0);
+
+	// Allocate memory for knots and coefficients
+	auto tx = new double[nx];                            // X knots
+	for (size_t i = 0; i < nx; i++) {
+		tx[i] = -0.1 + double(i) * (1.2 / double(nx));
+		std::cout << tx[i] << "\n";
+	}
+
+	auto ty = new double[ny];                            // Y knots
+	for (size_t i = 0; i < ny; i++) {
+		ty[i] = -0.1 + double(i) * (1.2 / double(ny));
+	}
+
+	int lc = (nxest - k - 1) * (nyest - k - 1);
+	auto c = new double[lc];                               // Coefficients
+	//std::fill(c, c + lc, 0.0);
+
+	double fp = 0.0; // Weighted sum of squared residuals
+
+	// Allocate working memory required by surfit
+
+	auto u = nxest - k - 1;
+	auto v = nyest - k - 1;
+	auto km = k + 1;
+	auto ne = std::max(nxest, nyest);
+	auto bx = k * v + k + 1;
+	auto by = k * u + k + 1;
+	int b1, b2;
+	if (bx <= by) {
+		b1 = bx;
+		b2 = b1 + v - k;
+	}
+	else {
+		b1 = by;
+		b2 = b1 + u - k;
+	}
+
+	int lwrk1 = u * v * (2 + b1 + b2) + 2 * (u + v + km * (m + ne) + ne - k - k) + b2 + 1;
+	double* wrk1 = new double[lwrk1];
+
+	int lwrk2 = u * v * (b2 + 1) + b2;
+	double* wrk2 = new double[lwrk2];
+
+	int kwrk = m + (nxest - 2 * k - 1) * (nyest - 2 * k - 1);
+	int* iwrk = new int[kwrk];
+
+	double eps = std::numeric_limits<double>::epsilon();
+
+	int ier = 0;
+	auto xb = -0.1;
+	auto xe = 1.1;
+	auto yb = -0.1;
+	auto ye = 1.1;
+	SURFIT(&iopt, &m, (double*)&x[0], (double*)&y[0], (double*)&z[0], w, &xb, &xe, &yb, &ye, &k, &k, &smoothing, &nxest, &nyest, &nmax, &eps, &nx, tx, &ny, ty, c, &fp, wrk1, &lwrk1, wrk2, &lwrk2, iwrk, &kwrk, &ier);
+	if (ier > 0) {
+		if (ier >= 10) {
+			std::stringstream s;
+			s << "Error fitting B-Spline surface using surfit(): " << ier;
+			std::cout << "Error fitting B-Spline surface using surfit(): " << ier << "\n";
+			throw std::runtime_error(s.str());
+		}
+		else {
+			std::cerr << "WARNING:  Non-fatal error while fitting B-Spline surface using surfit(): " << ier << std::endl;
+		}
+	}
+
+	// De-allocate temporary memory
+	delete[] w;
+	delete[] wrk1;
+	delete[] wrk2;
+	delete[] iwrk;
+}
+
+
+void Fit_Bspline_Surface() {
+	std::vector<double> xx(10, 0.0);
+	for (size_t i = 0; i < 10; i++) {
+		xx[i] = double(i) / 10.0;
+	}
+
+	std::vector<double> yy(10, 0.0);
+	for (size_t i = 0; i < 10; i++) {
+		yy[i] = double(i) / 10.0;
+	}
+
+	std::vector<double> zz(100, 0.0);
+	//int m = 1; // Evaluate a single point
+	int lwrk = nx * (k + 1) + ny * (k + 1);
+	double* wrk = new double[lwrk];
+	//int kwrk = 2 * m;
+	//int* iwrk = new int[kwrk];
+	//std::fill(iwrk, iwrk + kwrk, 0);
+
+	// bispev clamps x and y to the available ranges.
+	//int ier = 0;
+	m = 10;
+	BISPEV(tx, &nx, ty, &ny, c, &k, &k, &xx[0], &m, &yy[0], &m, &zz[0], wrk, &lwrk, iwrk, &kwrk, &ier);
+	if (ier > 0) {
+		std::stringstream s;
+		s << "Error evaluating B-Spline surface using bispev(): " << ier;
+		std::cout << "Error evaluating B-Spline surface using surfit(): " << ier << "\n";
+
+		throw std::runtime_error(s.str());
+	}
+}
+
+
+//double BSplineSurfaceeval(double x, double y)
+//{
+//	// Allocate working memory on the stack to keep this function thread-safe
+//	double* wrk = (double*)alloca(sizeof(double) * lwrk);
+//	std::fill(wrk, wrk + lwrk, 0.0);
+//
+//	double z = 0.0;
+//	int m = 1; // Evaluate a single point
+//	int kwrk = 2;
+//	int iwrk[2];
+//	std::fill(iwrk, iwrk + kwrk, 0);
+//
+//	// bispev clamps x and y to the available ranges.
+//	int ier = 0;
+//	BISPEV(tx, &nx, ty, &ny, c, &k, &k, &x, &m, &y, &m, &z, wrk, &lwrk, iwrk, &kwrk, &ier);
+//	if (ier > 0) {
+//		std::stringstream s;
+//		s << "Error evaluating B-Spline surface using bispev() at point (" << x << ", " << y << "): " << ier;
+//		throw std::runtime_error(s.str());
+//	}
+//
+//	return z;
+//}
 template <typename T> 
 void write_vector(const std::vector<T>& V, std::string path = "teste.csv") {
 	std::ofstream out(path);

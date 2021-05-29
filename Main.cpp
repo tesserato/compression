@@ -1,4 +1,5 @@
 ﻿#include "Header.h"
+#include "BSplineSurface.h"
 #include <filesystem>
 #include <boost/math/interpolators/cubic_hermite.hpp>
 #include <unordered_map>
@@ -6,6 +7,8 @@
 //#include <cmath>
 //#include <cstdlib>
 //#include <boost/math/interpolators/cubic_hermite.hpp>
+
+#include <Mathematics/BSplineSurfaceFit.h>
 
 //#define TIME
 
@@ -524,6 +527,34 @@ void print_help() {
 }
 
 int main(int argc, char** argv) {
+
+	auto path = "001_original_samples/01_sopranoA.wav";
+	Wav WV = read_wav(path);
+	v_pint Xpcs = compress_fd(WV.W);
+
+	std::vector<double> X(WV.W.size(), 0.0);
+	std::vector<double> Y(WV.W.size(), 0.0);
+
+	int p = Xpcs.size() - 1;
+	float m = 0.0;
+	for (size_t i = 0; i < p; i++)	{
+		auto t = Xpcs[i + 1] - Xpcs[i];
+		if (t > m)	{
+			m = t;
+		}
+	}
+
+	for (size_t i = 0; i < p; i++) {
+		for (size_t j = Xpcs[i]; j < Xpcs[i+1]; j++) {
+			X[j] = float(i) / float(p);
+			Y[j] = float(j - Xpcs[i]) / m;
+		}
+	}
+	std::cout << X.back() <<"<<<<<<<<<<<<<<<< \n";
+	BSplineSurface(X, Y, WV.W);
+}
+
+int main_(int argc, char** argv) {
 	bool save_csv = false;
 	std::vector<std::string> wav_paths;
 	std::vector<std::string> cmp_paths;

@@ -136,14 +136,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Program Files\boost_1_75_0;C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2020.1.216\windows\mkl\include;C:\Users\tesse\Desktop\Files\Reps\compression\code\include\sndfile;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\boost_1_75_0;C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2020.1.216\windows\mkl\include;C:\Users\tesse\Desktop\Files\Reps\compression\code\include\sndfile;C:\Users\tesse\Desktop\Files\Reps\harmonic-compression;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Program Files\boost_1_75_0\stage\lib;C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2020.1.216\windows\mkl\lib\intel64_win;C:\Users\tesse\Desktop\Files\Reps\compression\code\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libsndfile-1.lib;mkl_intel_lp64_dll.lib;mkl_intel_thread_dll.lib;mkl_core_dll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\boost_1_75_0\stage\lib;C:\Program Files (x86)\Intel\oneAPI\compiler\2021.2.0\windows\compiler\lib\intel64_win;C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2020.1.216\windows\mkl\lib\intel64_win;C:\Users\tesse\Desktop\Files\Reps\harmonic-compression\libs</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libsndfile-1.lib;mkl_intel_lp64_dll.lib;mkl_intel_thread_dll.lib;mkl_core_dll.lib;fitpack.lib;ifconsol.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -154,7 +154,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Program Files\boost_1_75_0;C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2020.1.216\windows\mkl\include;C:\Users\tesse\Desktop\Files\Reps\compression\code\include\sndfile;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\boost_1_75_0;C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2020.1.216\windows\mkl\include;C:\Users\tesse\Desktop\Files\Reps\compression\code\include\sndfile;C:\Users\tesse\Desktop\Files\Reps\harmonic-compression;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -172,14 +172,17 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Program Files\boost_1_75_0\stage\lib;C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2020.1.216\windows\mkl\lib\intel64_win;C:\Users\tesse\Desktop\Files\Reps\compression\code\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libsndfile-1.lib;mkl_intel_lp64_dll.lib;mkl_intel_thread_dll.lib;mkl_core_dll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\boost_1_75_0\stage\lib;C:\Program Files (x86)\Intel\oneAPI\compiler\2021.2.0\windows\compiler\lib\intel64_win;C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2020.1.216\windows\mkl\lib\intel64_win;C:\Users\tesse\Desktop\Files\Reps\harmonic-compression\libs</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libsndfile-1.lib;mkl_intel_lp64_dll.lib;mkl_intel_thread_dll.lib;mkl_core_dll.lib;fitpack.lib;ifconsol.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BSplineSurface.h" />
+    <ClInclude Include="FCMangle.h" />
     <ClInclude Include="Header.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BSplineSurface.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
