@@ -18,18 +18,12 @@
     <ClInclude Include="Header.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BSplineSurface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FCMangle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BSplineSurface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

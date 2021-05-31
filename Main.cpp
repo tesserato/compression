@@ -8,7 +8,7 @@
 //#include <cstdlib>
 //#include <boost/math/interpolators/cubic_hermite.hpp>
 
-#include <Mathematics/BSplineSurfaceFit.h>
+//#include <Mathematics/BSplineSurfaceFit.h>
 
 //#define TIME
 
@@ -528,9 +528,10 @@ void print_help() {
 
 int main(int argc, char** argv) {
 
-	auto path = "001_original_samples/01_sopranoA.wav";
+	std::string path = "001_original_samples/01_sopranoA.wav";
 	Wav WV = read_wav(path);
 	v_pint Xpcs = compress_fd(WV.W);
+	adjust_xpcs(Xpcs, WV.W);
 
 	std::vector<double> X(WV.W.size(), 0.0);
 	std::vector<double> Y(WV.W.size(), 0.0);
@@ -545,13 +546,38 @@ int main(int argc, char** argv) {
 	}
 
 	for (size_t i = 0; i < p; i++) {
-		for (size_t j = Xpcs[i]; j < Xpcs[i+1]; j++) {
-			X[j] = float(i) / float(p);
-			Y[j] = float(j - Xpcs[i]) / m;
+		for (size_t j = Xpcs[i]; j <= Xpcs[i+1]; j++) {
+			X[j] = double(i) / double(p-1);
+			Y[j] = double(j - Xpcs[i]) / double(Xpcs[i + 1] - Xpcs[i]);
 		}
 	}
-	std::cout << X.back() <<"<<<<<<<<<<<<<<<< \n";
-	BSplineSurface(X, Y, WV.W);
+	//std::cout << X.back() <<"<<<<<<<<<<<<<<<< \n";
+	int n = X.size();
+	int kx = 3;
+	int ky = 3;
+
+	int qmax = (kx * m + ky * p + m + p + std::sqrt(std::pow(kx, 2) * std::pow(m, 2) - 2 * kx * ky * m * p + 2 * kx * std::pow(m, 2) - 2 * kx * m * p + std::pow(ky, 2) * std::pow(p, 2) - 2 * ky * m * p + 2 * ky * std::pow(p, 2) + std::pow(m, 2) + 4 * m * n * p - 2 * m * p + std::pow(p, 2))) / (2 * m * p);
+
+	// 2 * kx + 2 <= nx
+	// 2 * ky + 2 <= ny
+	// (nx - kx - 1) * (ny - ky - 1) <= m
+	double q = 0.8;
+	int nx = q * p * qmax; // number of knots in the x axis
+	int ny = q * m * qmax; // number of knots in the y axis
+
+	std::cout << "n=" << n << " p=" << p << " m=" << m << " nx=" << nx << " ny=" << ny << "\n";
+
+
+	//if (true) { //tests
+
+	//}
+
+	auto c = Fit_Bspline_Surface(X, Y, WV.W, nx, ny);
+
+	auto z = Eval_Bspline_Surface(&c[0], nx, ny, kx, ky, p, m);
+	Wav Rec(z, WV.fps);
+	Rec.write(path.replace(path.end() - 4, path.end(), "_rec.wav"));
+
 }
 
 int main_(int argc, char** argv) {
