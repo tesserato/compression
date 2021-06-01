@@ -533,8 +533,12 @@ int main(int argc, char** argv) {
 	v_pint Xpcs = compress_fd(WV.W);
 	adjust_xpcs(Xpcs, WV.W);
 
-	std::vector<double> X(WV.W.size(), 0.0);
-	std::vector<double> Y(WV.W.size(), 0.0);
+
+	//pint x0 = Xpcs[0];
+	//pint x1 = Xpcs.back();
+	pint n = Xpcs.back() - Xpcs[0];
+	std::vector<double> X(n, 0.0);
+	std::vector<double> Y(n, 0.0);
 
 	int p = Xpcs.size() - 1;
 	float m = 0.0;
@@ -546,35 +550,54 @@ int main(int argc, char** argv) {
 	}
 
 	for (size_t i = 0; i < p; i++) {
-		for (size_t j = Xpcs[i]; j <= Xpcs[i+1]; j++) {
-			X[j] = double(i) / double(p-1);
-			Y[j] = double(j - Xpcs[i]) / double(Xpcs[i + 1] - Xpcs[i]);
+		for (size_t j = Xpcs[i]; j < Xpcs[i+1]; j++) {
+			X[j - Xpcs[0]] = double(i) / double(p);
+			Y[j - Xpcs[0]] = double(j - Xpcs[i]) / double(Xpcs[i + 1] - Xpcs[i]);
+			//Y[j - x0] = double(j - Xpcs[i]) / double(m);
 		}
 	}
 	//std::cout << X.back() <<"<<<<<<<<<<<<<<<< \n";
-	int n = X.size();
-	int kx = 3;
-	int ky = 3;
+	//int n = X.size();
+	int kx = 5;
+	int ky = 5;
 
 	int qmax = (kx * m + ky * p + m + p + std::sqrt(std::pow(kx, 2) * std::pow(m, 2) - 2 * kx * ky * m * p + 2 * kx * std::pow(m, 2) - 2 * kx * m * p + std::pow(ky, 2) * std::pow(p, 2) - 2 * ky * m * p + 2 * ky * std::pow(p, 2) + std::pow(m, 2) + 4 * m * n * p - 2 * m * p + std::pow(p, 2))) / (2 * m * p);
 
 	// 2 * kx + 2 <= nx
 	// 2 * ky + 2 <= ny
 	// (nx - kx - 1) * (ny - ky - 1) <= m
-	double q = 0.8;
+	double q = 0.25;
 	int nx = q * p * qmax; // number of knots in the x axis
 	int ny = q * m * qmax; // number of knots in the y axis
 
-	std::cout << "n=" << n << " p=" << p << " m=" << m << " nx=" << nx << " ny=" << ny << "\n";
+	int slack = 1;
+	double dx = 1.0 / double(nx - 2 * (kx + slack) - 1);
+	double x0 = -(kx + slack) * dx;
+	auto tx = new double[nx];                            // X knots
+	for (size_t i = 0; i < nx; i++) {
+		tx[i] = x0 + double(i) * dx;
+		//std::cout << tx[i] << "\n";0
+	}
+	//std::cout  << "\n";
+
+	double dy = 1.0 / double(ny - 2 * (ky + slack) - 1);
+	double y0 = -(ky + slack) * dy;
+	auto ty = new double[ny];                            // Y knots
+	for (size_t i = 0; i < ny; i++) {
+		ty[i] = y0 + double(i) * dy;
+	}
+
+	std::vector<double> Z(WV.W.begin() + Xpcs[0], WV.W.begin() + Xpcs.back());
+
+	write_vector(X, "X.csv");
+	write_vector(Y, "Y.csv");
+	write_vector(Z, "Z.csv");
+	auto c = Fit_Bspline_Surface(X, Y, Z, nx, ny, kx, ky, tx, ty);
+
+	std::cout << "n=" << n << " rate=" << double(n) / double(c.size()) << " x0=" << Xpcs[0] << " x1=" << Xpcs.back() << " p=" << p << " m=" << m << " nx=" << nx << " ny=" << ny << "\n";
 
 
-	//if (true) { //tests
-
-	//}
-
-	auto c = Fit_Bspline_Surface(X, Y, WV.W, nx, ny);
-
-	auto z = Eval_Bspline_Surface(&c[0], nx, ny, kx, ky, p, m);
+	auto z = Eval_Bspline_Surface(&c[0], nx, ny, kx, ky, p, 100, tx, ty);
 	Wav Rec(z, WV.fps);
 	Rec.write(path.replace(path.end() - 4, path.end(), "_rec.wav"));
 

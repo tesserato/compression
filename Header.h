@@ -35,7 +35,7 @@ extern "C" {
 		double* z, double* wrk, int* lwrk, int* iwrk, int* kwrk, int* ier);
 }
 
-std::vector<double> Fit_Bspline_Surface(std::vector<double>& x, std::vector<double>& y, std::vector<double>& z, int nx, int ny) {
+std::vector<double> Fit_Bspline_Surface(std::vector<double>& x, std::vector<double>& y, std::vector<double>& z, int nx, int ny, int kx, int ky, double* tx, double* ty) {
 	// Number of data points
 	int m = x.size();
 
@@ -43,8 +43,8 @@ std::vector<double> Fit_Bspline_Surface(std::vector<double>& x, std::vector<doub
 	int nyest = ny; // max number of knots in the y axis
 	int nmax = std::max(nxest, nyest); // max number of knots
 
-	int kx = 3;
-	int ky = 3;
+	//int kx = 3;
+	//int ky = 3;
 
 	// Configure surfit() parameters
 	int iopt = -1;                                     // Compute a smoothing spline
@@ -53,24 +53,9 @@ std::vector<double> Fit_Bspline_Surface(std::vector<double>& x, std::vector<doub
 	double* w = new double[m];
 	std::fill(w, w + m, 1.0);
 
-	double smoothing = 0.0;
-
-	// Allocate memory for knots and coefficients
-	double dx = 1.0 / double(nx - 2 * (kx + 1) - 1);
-	double x0 = - (kx + 1) * dx;
-	auto tx = new double[nx];                            // X knots
-	for (size_t i = 0; i < nx; i++) {
-		tx[i] = x0 + double(i) * dx;
-		//std::cout << tx[i] << "\n";
-	}
+	double smoothing = 1.0;
 
 
-	double dy = 1.0 / double(ny - 2 * (ky + 1) - 1);
-	double y0 = -(ky + 1) * dy;
-	auto ty = new double[ny];                            // Y knots
-	for (size_t i = 0; i < ny; i++) {
-		ty[i] = y0 + double(i) * dy;
-	}
 
 	int lc = (nxest - kx - 1) * (nyest - ky - 1);
 	std::vector<double> c(lc, 0.0);
@@ -109,11 +94,13 @@ std::vector<double> Fit_Bspline_Surface(std::vector<double>& x, std::vector<doub
 	double eps = std::numeric_limits<double>::epsilon();
 
 	int ier = 0;
-	auto xb = tx[kx + 2 - 1] - 0.001;
-	auto xe = tx[nx - kx - 2] + 0.001;
-	auto yb = ty[ky + 2 - 1] - 0.001;
-	auto ye = ty[ny - ky - 2] + 0.001;
-	SURFIT(&iopt, &m, (double*)&x[0], (double*)&y[0], (double*)&z[0], w, &xb, &xe, &yb, &ye, &kx, &ky, &smoothing, &nxest, &nyest, &nmax, &eps, &nx, tx, &ny, ty, &c[0], &fp, wrk1, &lwrk1, wrk2, &lwrk2, iwrk, &kwrk, &ier);
+	double delta = 0.000001;
+	auto xb = tx[kx + 2 - 1] - delta;
+	auto xe = tx[nx - kx - 2] + delta;
+	auto yb = ty[ky + 2 - 1] - delta;
+	auto ye = ty[ny - ky - 2] + delta;
+	std::cout << "yb=" << yb << " ye=" << ye << "\n";
+	SURFIT(&iopt, &m, &x[0], &y[0], &z[0], w, &xb, &xe, &yb, &ye, &kx, &ky, &smoothing, &nxest, &nyest, &nmax, &eps, &nx, tx, &ny, ty, &c[0], &fp, wrk1, &lwrk1, wrk2, &lwrk2, iwrk, &kwrk, &ier);
 	if (ier > 0) {
 		if (ier >= 10) {
 			std::stringstream s;
@@ -140,31 +127,12 @@ std::vector<double> Fit_Bspline_Surface(std::vector<double>& x, std::vector<doub
 	return c;
 }
 
-
-std::vector<double> Eval_Bspline_Surface(double *c, int nx, int ny, int kx, int ky, int mx, int my) {
-
-	double dx = 1.0 / double(nx - 2 * (kx + 1) - 1);
-	double x0 = -(kx + 1) * dx;
-	auto tx = new double[nx];                            // X knots
-	for (size_t i = 0; i < nx; i++) {
-		tx[i] = x0 + double(i) * dx;
-		std::cout << tx[i] << "\n";
-	}
-	std::cout  << "\n";
-
-
-	double dy = 1.0 / double(ny - 2 * (ky + 1) - 1);
-	double y0 = -(ky + 1) * dy;
-	auto ty = new double[ny];                            // Y knots
-	for (size_t i = 0; i < ny; i++) {
-		ty[i] = y0 + double(i) * dy;
-	}
-
+std::vector<double> Eval_Bspline_Surface(double *c, int nx, int ny, int kx, int ky, int mx, int my, double* tx, double* ty) {
 
 	std::vector<double> xx(mx, 0.0);
 	for (size_t i = 0; i < mx; i++) {
 		xx[i] = double(i) / double(mx);
-		std::cout << xx[i] << "\n";
+		//std::cout << xx[i] << "\n";
 	}
 
 	std::vector<double> yy(my, 0.0);
@@ -179,10 +147,8 @@ std::vector<double> Eval_Bspline_Surface(double *c, int nx, int ny, int kx, int 
 	int kwrk = mx + my;
 	int* iwrk = new int[kwrk];
 
-	if (true) { //checks
-
-
-	}
+	//if (true) { //checks
+	//}
 	int ier = 0;
 	//m = 10;
 	BISPEV(tx, &nx, ty, &ny, c, &kx, &ky, &xx[0], &mx, &yy[0], &my, &zz[0], wrk, &lwrk, iwrk, &kwrk, &ier);
