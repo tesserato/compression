@@ -1,5 +1,5 @@
 ﻿#include "Header.h"
-#include "BSplineSurface.h"
+//#include "BSplineSurface.h"
 #include <filesystem>
 #include <boost/math/interpolators/cubic_hermite.hpp>
 #include <unordered_map>
@@ -536,12 +536,12 @@ int main(int argc, char** argv) {
 
 	//pint x0 = Xpcs[0];
 	//pint x1 = Xpcs.back();
-	pint n = Xpcs.back() - Xpcs[0];
-	std::vector<double> X(n, 0.0);
-	std::vector<double> Y(n, 0.0);
+	pint n_inner = Xpcs.back() - Xpcs[0];
+	std::vector<double> X(n_inner, 0.0);
+	std::vector<double> Y(n_inner, 0.0);
 
 	int p = Xpcs.size() - 1;
-	float m = 0.0;
+	int m = 0;
 	for (size_t i = 0; i < p; i++)	{
 		auto t = Xpcs[i + 1] - Xpcs[i];
 		if (t > m)	{
@@ -550,57 +550,84 @@ int main(int argc, char** argv) {
 	}
 
 	for (size_t i = 0; i < p; i++) {
+		double xx = double(i+1) / double(p);
 		for (size_t j = Xpcs[i]; j < Xpcs[i+1]; j++) {
-			X[j - Xpcs[0]] = double(i) / double(p);
+			X[j - Xpcs[0]] = xx;
 			Y[j - Xpcs[0]] = double(j - Xpcs[i]) / double(Xpcs[i + 1] - Xpcs[i]);
 			//Y[j - x0] = double(j - Xpcs[i]) / double(m);
 		}
 	}
 	//std::cout << X.back() <<"<<<<<<<<<<<<<<<< \n";
 	//int n = X.size();
-	int kx = 5;
-	int ky = 5;
+	int kx = 3;
+	int ky = 3;
+	double qxy = 0.9;
+	double q = 1.0;
 
-	int qmax = (kx * m + ky * p + m + p + std::sqrt(std::pow(kx, 2) * std::pow(m, 2) - 2 * kx * ky * m * p + 2 * kx * std::pow(m, 2) - 2 * kx * m * p + std::pow(ky, 2) * std::pow(p, 2) - 2 * ky * m * p + 2 * ky * std::pow(p, 2) + std::pow(m, 2) + 4 * m * n * p - 2 * m * p + std::pow(p, 2))) / (2 * m * p);
+	int n = WV.W.size();
+	int nxmax = (kx * ky + kx + ky + n - p + 1) / (ky + 1);
 
-	// 2 * kx + 2 <= nx
-	// 2 * ky + 2 <= ny
-	// (nx - kx - 1) * (ny - ky - 1) <= m
-	double q = 0.25;
-	int nx = q * p * qmax; // number of knots in the x axis
-	int ny = q * m * qmax; // number of knots in the y axis
 
-	int slack = 1;
-	double dx = 1.0 / double(nx - 2 * (kx + slack) - 1);
-	double x0 = -(kx + slack) * dx;
-	auto tx = new double[nx];                            // X knots
-	for (size_t i = 0; i < nx; i++) {
-		tx[i] = x0 + double(i) * dx;
-		//std::cout << tx[i] << "\n";0
+	int nx = 2 * kx + 2 + round(qxy * double(nxmax - (2 * kx + 2))); // number of knots in the x axis
+	int ny = (kx * ky + kx - ky * nx + ky - n + p - nx + 1) / (kx - nx + 1);
+
+	nx = 2 * kx + 2 + q * (std::min(nx, p) - (2 * kx + 2));
+	ny = 2 * ky + 2 + q * (std::min(ny, m) - (2 * ky + 2));
+	
+	std::cout << "n=" << n << " rate=" << double(WV.W.size()) / double(p + (nx - kx - 1) * (ny - ky - 1)) << " x0=" << Xpcs[0] << " x1=" << Xpcs.back() << " p=" << p << " m=" << m << " nx=" << nx << " ny=" << ny << "\n";
+
+	//return 0;
+
+	int nmax = std::max(nx, ny);
+	std::vector<double> tx(nmax, 0.0);                        // X knots
+	std::vector<double> ty(nmax, 0.0);                         // Y knots
+
+
+	//double delta = 0.000001; // TODO 
+	//for (size_t i = 0; i < kx + 1; i++){
+	//	tx[i] = 0 - delta;
+	//}
+	//for (size_t i = 0; i < ky + 1; i++) {
+	//	ty[i] = 0 - delta;
+	//}
+
+	for (size_t i = nx - kx-1; i < nx; i++) {
+		tx[i] = 1.0;
+	}
+	for (size_t i = ny - ky-1; i < ny; i++) {
+		ty[i] = 1.0;
+	}
+
+	double dx = 1.0 / double(nx - 2 * kx);
+	for (size_t i = kx + 1; i < nx - kx-1; i++) {
+		tx[i] =  double(i - kx) * dx;
+		//std::cout << tx[i] << "\n";
 	}
 	//std::cout  << "\n";
 
-	double dy = 1.0 / double(ny - 2 * (ky + slack) - 1);
-	double y0 = -(ky + slack) * dy;
-	auto ty = new double[ny];                            // Y knots
-	for (size_t i = 0; i < ny; i++) {
-		ty[i] = y0 + double(i) * dy;
+	double dy = 1.0 / double(ny - 2 * ky);
+	for (size_t i = ky; i < ny - ky - 1; i++) {
+		ty[i] = double(i - ky) * dy;
 	}
 
 	std::vector<double> Z(WV.W.begin() + Xpcs[0], WV.W.begin() + Xpcs.back());
 
+
+
 	write_vector(X, "X.csv");
 	write_vector(Y, "Y.csv");
 	write_vector(Z, "Z.csv");
-	auto c = Fit_Bspline_Surface(X, Y, Z, nx, ny, kx, ky, tx, ty);
+	write_vector(tx, "Tx_b.csv");
+	write_vector(ty, "Ty_b.csv");
+	std::vector<double> c = Fit_Bspline_Surface(X.size(), &X[0], &Y[0], &Z[0], nx, ny, kx, ky, &tx[0], &ty[0]);
+	tx.resize(nx);
+	ty.resize(ny);
+	write_vector(tx, "Tx.csv");
+	write_vector(ty, "Ty.csv");
 
-	std::cout << "n=" << n << " rate=" << double(n) / double(c.size()) << " x0=" << Xpcs[0] << " x1=" << Xpcs.back() << " p=" << p << " m=" << m << " nx=" << nx << " ny=" << ny << "\n";
-
-
-	auto z = Eval_Bspline_Surface(&c[0], nx, ny, kx, ky, p, 100, tx, ty);
-	Wav Rec(z, WV.fps);
+	std::vector<double> Z_eval = Eval_Bspline_Surface(&c[0], nx, ny, kx, ky, p, 100, &tx[0], &ty[0]);
+	Wav Rec(Z_eval, WV.fps);
 	Rec.write(path.replace(path.end() - 4, path.end(), "_rec.wav"));
-
 }
 
 int main_(int argc, char** argv) {

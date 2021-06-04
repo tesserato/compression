@@ -35,37 +35,28 @@ extern "C" {
 		double* z, double* wrk, int* lwrk, int* iwrk, int* kwrk, int* ier);
 }
 
-std::vector<double> Fit_Bspline_Surface(std::vector<double>& x, std::vector<double>& y, std::vector<double>& z, int nx, int ny, int kx, int ky, double* tx, double* ty) {
+std::vector<double> Fit_Bspline_Surface(int m, double* x, double* y, double* z, int nx, int ny, int kx, int ky, double* tx, double* ty) {
 	// Number of data points
-	int m = x.size();
+	//int m = x.size();
 
 	int nxest = nx; // max number of knots in the x axis
 	int nyest = ny; // max number of knots in the y axis
 	int nmax = std::max(nxest, nyest); // max number of knots
 
-	//int kx = 3;
-	//int ky = 3;
-
-	// Configure surfit() parameters
 	int iopt = -1;                                     // Compute a smoothing spline
-
-	// Weight 
-	double* w = new double[m];
+	 
+	double* w = new double[m]; // Weight
 	std::fill(w, w + m, 1.0);
 
-	double smoothing = 1.0;
-
-
+	double smoothing = 0.0;
 
 	int lc = (nxest - kx - 1) * (nyest - ky - 1);
-	std::vector<double> c(lc, 0.0);
-	//auto c = new double[lc];                               // Coefficients
-	//std::fill(c, c + lc, 0.0);
+	//std::vector<double> c(lc); // Coefficients
+	double* c = new double[lc];
 
 	double fp = 0.0; // Weighted sum of squared residuals
 
 	// Allocate working memory required by surfit
-
 	auto u = nxest - kx - 1;
 	auto v = nyest - ky - 1;
 	auto km = std::max(kx, ky) + 1;
@@ -76,8 +67,7 @@ std::vector<double> Fit_Bspline_Surface(std::vector<double>& x, std::vector<doub
 	if (bx <= by) {
 		b1 = bx;
 		b2 = b1 + v - ky;
-	}
-	else {
+	} else {
 		b1 = by;
 		b2 = b1 + u - kx;
 	}
@@ -94,13 +84,15 @@ std::vector<double> Fit_Bspline_Surface(std::vector<double>& x, std::vector<doub
 	double eps = std::numeric_limits<double>::epsilon();
 
 	int ier = 0;
-	double delta = 0.000001;
-	auto xb = tx[kx + 2 - 1] - delta;
-	auto xe = tx[nx - kx - 2] + delta;
-	auto yb = ty[ky + 2 - 1] - delta;
-	auto ye = ty[ny - ky - 2] + delta;
+	//double delta = 0.000001;
+	auto xb = 0.0;
+	auto xe = 1.0;
+	auto yb = 0.0;
+	auto ye = 1.0;
 	std::cout << "yb=" << yb << " ye=" << ye << "\n";
-	SURFIT(&iopt, &m, &x[0], &y[0], &z[0], w, &xb, &xe, &yb, &ye, &kx, &ky, &smoothing, &nxest, &nyest, &nmax, &eps, &nx, tx, &ny, ty, &c[0], &fp, wrk1, &lwrk1, wrk2, &lwrk2, iwrk, &kwrk, &ier);
+	std::cout << m << " " << nx << " " << ny << " " << nxest << " " << nyest << "\n";
+	SURFIT(&iopt, &m, x, y, z, w, &xb, &xe, &yb, &ye, &kx, &ky, &smoothing, &nxest, &nyest, &nmax, &eps, &nx, tx, &ny, ty, c, &fp, wrk1, &lwrk1, wrk2, &lwrk2, iwrk, &kwrk, &ier);
+	std::cout << m << " " << nx << " " << ny << " " << nxest << " " << nyest << "\n";
 	if (ier > 0) {
 		if (ier >= 10) {
 			std::stringstream s;
@@ -118,39 +110,32 @@ std::vector<double> Fit_Bspline_Surface(std::vector<double>& x, std::vector<doub
 	delete[] wrk1;
 	delete[] wrk2;
 	delete[] iwrk;
-	//std::cout << "\n";
-	//for (size_t i = 0; i < nx; i++) {
-	//	tx[i] = x0 + double(i) * dx;
-	//	std::cout << tx[i] << "\n";
-	//}
 
-	return c;
+	std::vector<double> cc(c, c + lc);
+	return cc;
 }
 
 std::vector<double> Eval_Bspline_Surface(double *c, int nx, int ny, int kx, int ky, int mx, int my, double* tx, double* ty) {
 
-	std::vector<double> xx(mx, 0.0);
+	std::vector<double> xx(mx);
 	for (size_t i = 0; i < mx; i++) {
 		xx[i] = double(i) / double(mx);
 		//std::cout << xx[i] << "\n";
 	}
 
-	std::vector<double> yy(my, 0.0);
+	std::vector<double> yy(my);
 	for (size_t i = 0; i < my; i++) {
 		yy[i] = double(i) / double(my);
 	}
 
-	std::vector<double> zz(mx * my, 0.0);
+	std::vector<double> zz(mx * my);
 	int lwrk = mx * (kx + 1) + my * (ky + 1);
 	double* wrk = new double[lwrk];
 
 	int kwrk = mx + my;
 	int* iwrk = new int[kwrk];
 
-	//if (true) { //checks
-	//}
 	int ier = 0;
-	//m = 10;
 	BISPEV(tx, &nx, ty, &ny, c, &kx, &ky, &xx[0], &mx, &yy[0], &my, &zz[0], wrk, &lwrk, iwrk, &kwrk, &ier);
 	if (ier > 0) {
 		std::stringstream s;
@@ -159,6 +144,8 @@ std::vector<double> Eval_Bspline_Surface(double *c, int nx, int ny, int kx, int 
 
 		throw std::runtime_error(s.str());
 	}
+	delete[] wrk;
+	delete[] iwrk;
 	return zz;
 }
 
