@@ -537,8 +537,9 @@ int main(int argc, char** argv) {
 	//pint x0 = Xpcs[0];
 	//pint x1 = Xpcs.back();
 	pint n_inner = Xpcs.back() - Xpcs[0];
-	std::vector<double> X(n_inner, 0.0);
-	std::vector<double> Y(n_inner, 0.0);
+	std::vector<double> X;
+	std::vector<double> Y;
+	std::vector<double> Z;
 
 	int p = Xpcs.size() - 1;
 	int m = 0;
@@ -547,22 +548,28 @@ int main(int argc, char** argv) {
 		if (t > m)	{
 			m = t;
 		}
+		double xx = double(i + 1) / double(p);
+		for (size_t j = Xpcs[i]; j <= Xpcs[i + 1]; j++) {
+			X.push_back(xx);
+			Y.push_back(double(j - Xpcs[i]) / double(t));
+			Z.push_back(WV.W[j]);
+		}
+
 	}
 
-	for (size_t i = 0; i < p; i++) {
-		double xx = double(i+1) / double(p);
-		for (size_t j = Xpcs[i]; j < Xpcs[i+1]; j++) {
-			X[j - Xpcs[0]] = xx;
-			Y[j - Xpcs[0]] = double(j - Xpcs[i]) / double(Xpcs[i + 1] - Xpcs[i]);
-			//Y[j - x0] = double(j - Xpcs[i]) / double(m);
-		}
-	}
+	//for (size_t i = 0; i < p; i++) {
+	//	for (size_t j = Xpcs[i]; j < Xpcs[i+1]; j++) {
+	//		X[j - Xpcs[0]] = xx;
+	//		Y[j - Xpcs[0]] = double(j - Xpcs[i]) / double(Xpcs[i + 1] - Xpcs[i]);
+	//		//Y[j - x0] = double(j - Xpcs[i]) / double(m);
+	//	}
+	//}
 	//std::cout << X.back() <<"<<<<<<<<<<<<<<<< \n";
 	//int n = X.size();
 	int kx = 3;
 	int ky = 3;
-	double qxy = 0.9;
-	double q = 1.0;
+	double qxy = 0.1;
+	double q = 0.9;
 
 	int n = WV.W.size();
 	int nxmax = (kx * ky + kx + ky + n - p + 1) / (ky + 1);
@@ -610,9 +617,7 @@ int main(int argc, char** argv) {
 		ty[i] = double(i - ky) * dy;
 	}
 
-	std::vector<double> Z(WV.W.begin() + Xpcs[0], WV.W.begin() + Xpcs.back());
-
-
+	//std::vector<double> Z(WV.W.begin() + Xpcs[0], WV.W.begin() + Xpcs.back());
 
 	write_vector(X, "X.csv");
 	write_vector(Y, "Y.csv");
