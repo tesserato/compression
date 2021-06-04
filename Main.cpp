@@ -630,7 +630,13 @@ int main(int argc, char** argv) {
 	write_vector(tx, "Tx.csv");
 	write_vector(ty, "Ty.csv");
 
-	std::vector<double> Z_eval = Eval_Bspline_Surface(&c[0], nx, ny, kx, ky, p, 100, &tx[0], &ty[0]);
+	std::vector<double> Z_eval;
+	for (size_t i = 0; i < p; i++) {
+		int t = Xpcs[i + 1] - Xpcs[i];
+		double x = double(i + 1) / double(p);
+		std::vector<double> z = Eval_Bspline_Surface(&c[0], nx, ny, kx, ky, x, t, &tx[0], &ty[0]);
+		Z_eval.insert(Z_eval.end(), z.begin(), z.end());
+	}
 	Wav Rec(Z_eval, WV.fps);
 	Rec.write(path.replace(path.end() - 4, path.end(), "_rec.wav"));
 }

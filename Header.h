@@ -149,6 +149,36 @@ std::vector<double> Eval_Bspline_Surface(double *c, int nx, int ny, int kx, int 
 	return zz;
 }
 
+std::vector<double> Eval_Bspline_Surface(double* c, int nx, int ny, int kx, int ky, double x, int my, double* tx, double* ty) {
+
+	std::vector<double> xx = { x };
+	int mx = 1;
+
+	std::vector<double> yy(my);
+	for (size_t i = 0; i < my; i++) {
+		yy[i] = double(i) / double(my);
+	}
+
+	std::vector<double> zz(mx * my);
+	int lwrk = mx * (kx + 1) + my * (ky + 1);
+	double* wrk = new double[lwrk];
+
+	int kwrk = mx + my;
+	int* iwrk = new int[kwrk];
+
+	int ier = 0;
+	BISPEV(tx, &nx, ty, &ny, c, &kx, &ky, &xx[0], &mx, &yy[0], &my, &zz[0], wrk, &lwrk, iwrk, &kwrk, &ier);
+	if (ier > 0) {
+		std::stringstream s;
+		s << "Error evaluating B-Spline surface using bispev(): " << ier;
+		std::cout << "Error evaluating B-Spline surface using surfit(): " << ier << "\n";
+
+		throw std::runtime_error(s.str());
+	}
+	delete[] wrk;
+	delete[] iwrk;
+	return zz;
+}
 
 //double BSplineSurfaceeval(double x, double y)
 //{
