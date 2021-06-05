@@ -528,7 +528,7 @@ void print_help() {
 
 int main(int argc, char** argv) {
 
-	std::string path = "001_original_samples/01_sopranoA.wav";
+	std::string path = "001_original_samples/16_crash.wav";
 	Wav WV = read_wav(path);
 	v_pint Xpcs = compress_fd(WV.W);
 	adjust_xpcs(Xpcs, WV.W);
