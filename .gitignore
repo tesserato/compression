@@ -6,3 +6,6 @@ intermediate
 *.ilk
 *.pdb
 *.exe
+*.csv
+006_decompressed_samples_PC
+005_compressed_samples_PC

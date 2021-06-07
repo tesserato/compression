@@ -1,10 +1,61 @@
-# $items = Get-ChildItem -Path compressed_samples | Where-Object {$_.Extension -eq ".mp3" -or $_.Extension -eq ".m4a" -or $_.Extension -eq ".opus"}
 
-$items = Get-ChildItem -Path compressed_samples | Where-Object {$_.Extension -eq ".cmp"}
 
-###################
-## Decompressing ##
-###################
+$items = Get-ChildItem -Path 001_original_samples | Where-Object {$_.Extension -eq ".wav"}
+
+$results = @()
+$q = 0.2
+$qxy = 0.1
+foreach ($item in $items) {
+  $item.Name
+  $in = "001_original_samples/" + $item.Name
+  # $out = "decompressed_samples/" + $item.Name.replace($item.Extension, "mp3.wav")
+
+  $line = [ordered] @{
+    Sample = $item.Name.replace($item.Extension,"")
+    "Compression time" = (Measure-Command {executables/x64_Release_Compress.exe $in -q $q qxy $qxy | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
+    q=$q
+    qxy=$qxy
+  }
+  $name = $item.Name.replace($item.Extension,"")
+  $in = "001_original_samples/" + $name + ".pc"
+  $out = "005_compressed_samples_PC/" + $name + "-q=" + $q + "-qxy="+ $qxy + "-.pc"
+  Move-Item -Path $in -Destination $out -Force
+
+  $line += @{
+    "Decompression time" = (Measure-Command {executables/x64_Release_Compress.exe $out -a pc | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
+  }
+
+  $in = "005_compressed_samples_PC/" + $name + "-q=" + $q + "-qxy="+ $qxy + "-pc.wav"
+  $out = "006_decompressed_samples_PC/" + $name + "-q=" + $q + "-qxy="+ $qxy + ".wav"
+  Move-Item -Path $in -Destination $out -Force
+
+  $results += New-Object PSObject -Property $line
+
+}
+  $results | export-csv -Path ("./007_results_PC/PC.csv") -NoTypeInformation
+
+exit
+
+for ($i = 0; $i -le 10; $i++) {
+  for ($j = 0; $j -le 10; $j++) {
+    
+    $j/10
+    foreach ($item in $items) {
+      $item.Name
+      $in = "compressed_samples/" + $item.Name
+      # $out = "decompressed_samples/" + $item.Name.replace($item.Extension, "mp3.wav")
+  
+      $line = [ordered] @{
+        Sample = $item.Name.replace($item.Extension,"")
+        CMP = (Measure-Command {code/executables/x64_Release_Compress.exe $in -a .cmp -q ($i/10) | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
+      }
+
+    }
+  }
+}
+
+
+
 for ($ctr = 1 ; $ctr -le 100 ; $ctr++){
 
   $results = @()

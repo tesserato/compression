@@ -1,18 +1,19 @@
 ﻿#include "Header.h"
-//#include "BSplineSurface.h"
 #include <filesystem>
 #include <boost/math/interpolators/cubic_hermite.hpp>
 #include <unordered_map>
+
+//#include "BSplineSurface.h"
 //#include <random>
 //#include <cmath>
 //#include <cstdlib>
 //#include <boost/math/interpolators/cubic_hermite.hpp>
-
 //#include <Mathematics/BSplineSurfaceFit.h>
 
 //#define TIME
 
-const std::string EXT = ".hc";
+const std::string HCEXT = ".hc";
+const std::string PCEXT = ".pc";
 std::string APPEND = "_reconstructed";
 
 pint get_mode(v_pint& T) {
@@ -662,25 +663,28 @@ void print_help() {
 		<< "For more info about the author: carlos-tarjano.web.app\n"
 		<< "Mono WAV files are the only format supported currently\n\n"
 		<< "Usage: \n"
-		<< " -[a string] [-csv] [path/to/file_1.wav]...[path/to/file_n.wav]  [path/to/file_1" << EXT << "]...[path/to/file_m" << EXT << "]\n"
+		<< " -[a string] [-csv] [path/to/file_1.wav]...[path/to/file_n.wav]  [path/to/file_1" << HCEXT << "]...[path/to/file_m" << HCEXT << "]\n"
 		<< " -a or --append: (default \"" << APPEND << "\") string to be appended to each reconstructed file name\n"
+		<< " -q or --quality: 0.0 <= q <= 1.0. If supplied, " << PCEXT << " mode is used, with quality q\n"
 		<< " -csv: flag to turn on saveing csv files with the beginning of each pseudo cycle, envelope and average waveform\n"
-		<< " If no path is given, the root folder will be scanned for .wav and " << EXT << " files, and those will be processed accordingly\n";
+		<< " If no path is given, the root folder will be scanned for .wav and " << HCEXT << " files, and those will be processed accordingly\n";
 
 
 }
+
+//int main(int argc, char** argv) {
+//
+//
+//}
 
 int main(int argc, char** argv) {
-	compress("001_original_samples/01_sopranoA.wav", "001_original_samples/01_sopranoA.cp", 0.2);
-
-	decompress("001_original_samples/01_sopranoA.cp",  "001_original_samples/01_sopranoA_r.wav");
-
-}
-
-int main_(int argc, char** argv) {
 	bool save_csv = false;
+	bool pc_mode = false;
 	std::vector<std::string> wav_paths;
-	std::vector<std::string> cmp_paths;
+	std::vector<std::string> hc_paths;
+	std::vector<std::string> pc_paths;
+	double Q = 0.3;
+	double QXY = 0.1;
 	
 	for (int i = 1; i < argc; ++i) { // parsing args
 		if (std::strcmp(argv[i], "-h") == 0 || std::strcmp(argv[i], "--help") == 0) {
@@ -692,6 +696,18 @@ int main_(int argc, char** argv) {
 			std::cout << "Append \"" << APPEND << "\" to the name of reconstructed files\n";
 			i++;
 		}
+		else if (std::strcmp(argv[i], "-q") == 0 || std::strcmp(argv[i], "--quality") == 0) {
+			Q = atof(argv[i + 1]);
+			pc_mode = true;
+			std::cout << PCEXT << " mode, with quality=" << Q << "\n";
+			i++;
+		}
+		else if (std::strcmp(argv[i], "-qxy") == 0) {
+			QXY = atof(argv[i + 1]);
+			pc_mode = true;
+			std::cout << PCEXT << " mode, with x vs y ratio=" << QXY << "\n";
+			i++;
+		}
 		else if (std::strcmp(argv[i], "-csv") == 0) {
 			save_csv = true;
 			std::cout << "Info will be saved as csv\n";
@@ -699,56 +715,70 @@ int main_(int argc, char** argv) {
 		else if (ends_with(argv[i], ".wav")) {
 			wav_paths.push_back(argv[i]);
 		}
-		else if (ends_with(argv[i], EXT)) {
-			cmp_paths.push_back(argv[i]);
+		else if (ends_with(argv[i], HCEXT)) {
+			hc_paths.push_back(argv[i]);
+		}
+		else if (ends_with(argv[i], PCEXT)) {
+			pc_paths.push_back(argv[i]);
 		}
 	}
 
-	if (wav_paths.empty() && cmp_paths.empty()) { // no files found in args, searching root
+	if (wav_paths.empty() && hc_paths.empty() && pc_paths.empty()) { // no files found in args, searching root
 		for (const auto& entry : std::filesystem::directory_iterator("./")) {
 			std::string path = { entry.path().u8string() };
 			if (ends_with(path, ".wav")) {
 				wav_paths.push_back(path);
 			}
-			else if (ends_with(path, EXT)) {
-				cmp_paths.push_back(path);
+			else if (ends_with(path, HCEXT)) {
+				hc_paths.push_back(path);
+			}
+			else if (ends_with(path, PCEXT)) {
+				pc_paths.push_back(path);
 			}
 		}
 	}
 
-	for (auto path : wav_paths) { // COMPRESSING
-		std::cout << "\nCompressing " << path << "\n";
-		Wav WV = read_wav(path);
-
-		v_pint Xpcs = compress_fd(WV.W);
-
-		adjust_xpcs(Xpcs, WV.W);
-
-		auto [Waveform, Envelope] = average_waveform_and_envelope(Xpcs, WV.W);
-
-		#ifdef DEBUG
-			write_vector(Waveform, "waveform.csv");
-		#endif // DEBUG
-
-
-		path.replace(path.end() - 4, path.end(), EXT);
-
-		write_bin(path, WV.W.size(), WV.fps, Xpcs, Waveform, Envelope);
-
-		if (save_csv) {
-			path.replace(path.end() - 4, path.end(), ".csv");
-			write_vector(Xpcs, path);
+	if (pc_mode) {
+		for (auto path : wav_paths) { // COMPRESSING PC
+			std::string inpath = path;
+			path.replace(path.end() - 4, path.end(), PCEXT);
+			compress(inpath, path, Q, QXY);
 		}
 
-		#ifdef DEBUG
-			Wav Rec(reconstruct_fd(Xpcs, Waveform, Envelope, WV.W.size()), WV.fps);
-			Rec.write(path.replace(path.end() - 4, path.end(), "_rec.wav"));
-			Wav Res(get_residue(WV.W, Rec.W), WV.fps);
-			Res.write(path.replace(path.end() - 8, path.end(), "_res.wav"));
-		#endif // v
+	} else {
+		for (auto path : wav_paths) { // COMPRESSING HC
+			std::cout << "\nCompressing " << path << "\n";
+			Wav WV = read_wav(path);
+
+			v_pint Xpcs = compress_fd(WV.W);
+
+			adjust_xpcs(Xpcs, WV.W);
+
+			auto [Waveform, Envelope] = average_waveform_and_envelope(Xpcs, WV.W);
+
+			#ifdef DEBUG
+				write_vector(Waveform, "waveform.csv");
+			#endif // DEBUG
+
+			path.replace(path.end() - 4, path.end(), HCEXT);
+
+			write_bin(path, WV.W.size(), WV.fps, Xpcs, Waveform, Envelope);
+
+			if (save_csv) {
+				path.replace(path.end() - 4, path.end(), ".csv");
+				write_vector(Xpcs, path);
+			}
+
+			#ifdef DEBUG
+				Wav Rec(reconstruct_fd(Xpcs, Waveform, Envelope, WV.W.size()), WV.fps);
+				Rec.write(path.replace(path.end() - 4, path.end(), "_rec.wav"));
+				Wav Res(get_residue(WV.W, Rec.W), WV.fps);
+				Res.write(path.replace(path.end() - 8, path.end(), "_res.wav"));
+			#endif // v
+		}
 	}
 
-	for (auto path : cmp_paths) { // DECOMPRESSING
+	for (auto path : hc_paths) { // DECOMPRESSING HC
 		//std::cout << "\nDecompressing " << path << "\n";
 		#ifdef TIME
 			auto time = Chronograph();
@@ -758,12 +788,19 @@ int main_(int argc, char** argv) {
 			time.stop("Read & decompressed " + path + " in ");
 			auto time3 = Chronograph();
 		#endif
-		path.replace(path.end() - EXT.size(), path.end(), APPEND + ".wav");
+		path.replace(path.end() - HCEXT.size(), path.end(), APPEND + ".wav");
 		WW.write(path);
 		#ifdef TIME
 			time3.stop("Wrote " + path + " in ");
 		#endif
 	}
+
+	for (auto path : pc_paths) { // DECOMPRESSING PC
+		std::string inpath = path;
+		path.replace(path.end() - HCEXT.size(), path.end(), APPEND + ".wav");
+		decompress(inpath, path);
+	}
+
 	return 0;
 }
 
