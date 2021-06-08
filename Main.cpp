@@ -524,7 +524,7 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = 0.
 		if (t > m) {
 			m = t;
 		}
-		double xx = double(i + 1) / double(p);
+		double xx = double(i + 1) / double(p + 1);
 		for (size_t j = Xpcs[i]; j <= Xpcs[i + 1]; j++) {
 			X.push_back(xx);
 			Y.push_back(double(j - Xpcs[i]) / double(t));
@@ -585,13 +585,14 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = 0.
 	write_vector(tx, "Tx.csv");
 	write_vector(ty, "Ty.csv");
 
-	std::vector<int> P = { p, nx, ny, int(WV.fps) };
+	std::vector<int> P = { p, nx, ny, int(WV.fps), int(WV.W.size()) };
 	std::ofstream data_file;      // pay attention here! ofstream
 	data_file.open(outpath, std::ios::out | std::ios::binary | std::fstream::trunc);
 	data_file.write((char*)&P[0], P.size() * sizeof(int));
 	data_file.write((char*)&T[0], T.size() * sizeof(unsigned short));
 	data_file.write((char*)&CC[0], CC.size() * sizeof(float));
 	data_file.close();
+	write_vector(T, "T.csv");
 }
 
 void decompress(std::string inpath, std::string outpath, int kx = 3, int ky = 3) {
@@ -600,11 +601,12 @@ void decompress(std::string inpath, std::string outpath, int kx = 3, int ky = 3)
 	data_file.open(inpath, std::ios::in | std::ios::binary);
 
 	std::vector<int> H(4);
-	data_file.read(reinterpret_cast<char*>(&H[0]),  4 * sizeof(int));
+	data_file.read(reinterpret_cast<char*>(&H[0]),  5 * sizeof(int));
 	int p = H[0];
 	int nx = H[1];
 	int ny = H[2];
 	int fps = H[3];
+	int n = H[4];
 
 	std::vector<unsigned short> T(p + 1);
 	data_file.read(reinterpret_cast<char*>(&T[0]), (p + 1) * sizeof(unsigned short));
@@ -612,10 +614,35 @@ void decompress(std::string inpath, std::string outpath, int kx = 3, int ky = 3)
 	int lc = (nx - kx - 1) * (ny - ky - 1);
 	std::vector<float> C_buffer(lc);
 	data_file.read(reinterpret_cast<char*>(&C_buffer[0]), lc * sizeof(float));
-
 	std::vector<double> C(C_buffer.begin(), C_buffer.end());
 
-	std::cout << "p=" << p << " nx=" << nx << " ny=" << ny << " fps=" << fps << "\n";
+	unsigned short xi = T[0];
+	T[0] = double(3 * T[1] + 2 * T[2] + T[3]) / 6.0;
+	while (T[0] < xi) {
+		xi -= T[0];
+		unsigned short t = double(3 * T[0] + 2 * T[1] + T[2]) / 6.0;
+		T.insert(T.begin(), t);
+
+	}
+
+	T.push_back(double(3 * T[p] + 2 * T[p - 1] + T[p - 2]) / 6.0);
+
+	int sum_pos_T = -xi;
+	for (int t:T) {
+		sum_pos_T += t;
+	}
+
+	while (sum_pos_T < n) {
+		unsigned short t = double(3 * T[p - 1] + 2 * T[p - 2] + T[p - 3]) / 6.0;
+		T.push_back(t);
+		sum_pos_T += t;
+	}
+
+	p = T.size();
+
+	write_vector(T, "T_after.csv");
+
+	std::cout << "p=" << p << " nx=" << nx << " ny=" << ny << " fps=" << fps << " n=" << n << "\n";
 
 	std::vector<double> tx(nx, 0.0);                        // X knots
 	std::vector<double> ty(ny, 0.0);                         // Y knots
@@ -640,14 +667,19 @@ void decompress(std::string inpath, std::string outpath, int kx = 3, int ky = 3)
 	}
 
 	std::vector<double> Z_eval;
-	for (size_t i = 0; i < p; i++) {
+	for (size_t i = 0; i < T.size(); i++) {
 		int t = T[i];
-		double x = double(i + 1) / double(p);
+		double x = double(i) / double(p + 1);
 		std::vector<double> z = Eval_Bspline_Surface(&C[0], nx, ny, kx, ky, x, t, &tx[0], &ty[0]);
 		Z_eval.insert(Z_eval.end(), z.begin(), z.end());
 	}
-	Wav Rec(Z_eval,fps);
+
+	int x0 = std::max(0, int(T[0] - xi));
+	std::vector<double> Z(Z_eval.begin() + x0, Z_eval.begin() + x0 + n);
+	Wav Rec(Z, fps);
 	Rec.write(outpath);
+
+	write_vector(C, "C_after.csv");
 }
 
 
