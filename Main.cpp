@@ -503,18 +503,18 @@ inline bool ends_with(std::string const& value, std::string const& ending) {
 	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
-void compress(std::string inpath, std::string outpath, double q, double qxy = 0.1, int kx=3, int ky=3) {
+void compress(std::string inpath, std::string outpath, double q, double qxy = -1.0, int kx=3, int ky=3) {
 
 	Wav WV = read_wav(inpath);
 	v_pint Xpcs = compress_fd(WV.W);
 	adjust_xpcs(Xpcs, WV.W);
 
-	pint n_inner = Xpcs.back() - Xpcs[0];
+	//pint n_inner = Xpcs.back() - Xpcs[0];
 	std::vector<double> X;
 	std::vector<double> Y;
 	std::vector<double> Z;
 
-	int p = Xpcs.size() - 1;
+	const int p = Xpcs.size() - 1;
 	int m = 0;
 	std::vector<unsigned short> T(Xpcs.size());
 	T[0] = Xpcs[0];
@@ -532,22 +532,74 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = 0.
 		}
 	}
 
-	int n = WV.W.size();
-	int nxmax = (kx * ky + kx + ky + n - p + 1) / (ky + 1);
+	const int n = WV.W.size();
+	const int k = 5;
 
-	int nx = 2 * kx + 2 + round(qxy * double(nxmax - (2 * kx + 2))); // number of knots in the x axis
-	int ny = (kx * ky + kx - ky * nx + ky - n + p - nx + 1) / (kx - nx + 1);
+	int nxmax = (kx * ky + kx + ky + n - p + 1 - k) / (ky + 1);
+	int nxmin = 2 * kx + 2;
+	int nymin = 2 * ky + 2;
 
-	nx = 2 * kx + 2 + q * (std::min(nx, p) - (2 * kx + 2));
-	ny = 2 * ky + 2 + q * (std::min(ny, m) - (2 * ky + 2));
+	int nx = 0;
+	int ny = 0;
 
-	std::cout << "n=" << n << " rate=" << double(WV.W.size()) / double(p + (nx - kx - 1) * (ny - ky - 1)) << " x0=" << Xpcs[0] << " x1=" << Xpcs.back() << " p=" << p << " m=" << m << " nx=" << nx << " ny=" << ny << "\n";
+	//if (qxy <= 0.0 || 1.0 <= qxy) { // qxy will be used to calculate nx and ny	
+
+	//	double num = (ky + 1) * (k + kx * ky + kx - ky * nx + ky - n - nx + p + 1) * (2 * kx - p + 2);
+	//	double den = (2 * ky - m + 2);
+
+	//	double qxy = -(num / den - double(2 * (kx + 1) * (ky + 1) * (kx - nx + 1))) / double(k + kx * ky + kx + ky - n + p + 1);
+	//	std::cout << "calculated qxy=" << qxy << "\n";
+	//}
+
+	//int nx = nxmin + round(qxy * double(nxmax - nxmin)); // number of knots in the x axis
+	//int ny = round(double(k + kx * ky + kx - ky * nx + ky - n + p - nx + 1) / double(kx - nx + 1));
+
+	//nx = nxmin + round(q * double(std::min(nx, p) - nxmin));
+	//ny = nymin + round(q * double(std::min(ny, m) - nymin));
+
+	if (qxy <= 0.0 || 1.0 <= qxy) { // qxy will be used to calculate nx and ny	
+		//double s = double(m * m * (kx * kx + 2 * kx + 1) + 2 * m * p * (-2 * k - kx * ky - kx - ky + 2 * n - 2 * p - 1) + p * p * (ky * ky + 2 * ky + 1)) / double(4 * m * p);
+
+		//double sq = -(-4 * k * m * p + kx * kx * m * m - 2 * kx * ky * m * p + 2 * kx * m * m - 2 * kx * m * p + ky * ky * p * p - 2 * ky * m * p + 2 * ky * p * p + m * m + 4 * m * n * p - 4 * m * p * p - 2 * m * p + p * p);
+
+		//double r = double(double(kx * m + ky * p + m + p) + std::sqrt(sq)) / double(2 * m * p);
+		//double r = double(kx * m + ky * p + m + p) / double(2 * m * p);
+
+		//double r = std::sqrt(double(n - p - k) / double(m * p));
+
+		double sq = std::sqrt(double(4 * m * m + m * n * p - m * p * p - 13 * m * p + 4 * p * p));
+		double r = (double(2 * m + 2 * p) + sq) / double(m * p);
+
+		double nx_ = r * double(p);
+		double ny_ = r * double(m);		
+
+		double res = (m * r - 4) * (p * r - 4) + p + 5;
+
+		std::cout << r << " " << nx_ << " " << ny_ << " " << res << "<<<<<\n";
+
+		int nxmin = 2 * kx + 2;
+		int nymin = 2 * ky + 2;
+
+		nx = round(nx_);
+		ny = round(ny_);
+
+		nx = nxmin + round(q * double(std::min(nx, p)) - nxmin);
+		ny = nymin + round(q * double(std::min(ny, m)) - nymin);
+	} else {
+		nx = nxmin + round(qxy * double(nxmax - nxmin)); // number of knots in the x axis
+		ny = round(double(k + kx * ky + kx - ky * nx + ky - n + p - nx + 1) / double(kx - nx + 1));
+
+		nx = nxmin + round(q * double(std::min(nx, p) - nxmin));
+		ny = nymin + round(q * double(std::min(ny, m) - nymin));	
+	}
+
+	std::cout << "n=" << n << " rate=" << double(WV.W.size()) / double(p + k + (nx - kx - 1) * (ny - ky - 1)) << " x0=" << Xpcs[0] << " x1=" << Xpcs.back() << " p=" << p << " m=" << m << " nx=" << nx << " ny=" << ny << "\n";
 
 	//return 0;
 
 	int nmax = std::max(nx, ny);
 	std::vector<double> tx(nmax, 0.0);                        // X knots
-	std::vector<double> ty(nmax, 0.0);                         // Y knots
+	std::vector<double> ty(nmax, 0.0);                        // Y knots
 
 
 	for (size_t i = nx - kx - 1; i < nx; i++) {
@@ -704,10 +756,6 @@ void print_help() {
 
 }
 
-//int main(int argc, char** argv) {
-//
-//
-//}
 
 int main(int argc, char** argv) {
 	bool save_csv = false;
@@ -716,7 +764,7 @@ int main(int argc, char** argv) {
 	std::vector<std::string> hc_paths;
 	std::vector<std::string> pc_paths;
 	double Q = 0.3;
-	double QXY = 0.1;
+	double QXY = -1.0;
 	
 	for (int i = 1; i < argc; ++i) { // parsing args
 		if (std::strcmp(argv[i], "-h") == 0 || std::strcmp(argv[i], "--help") == 0) {
