@@ -2,36 +2,31 @@
 ################
 ## Converting ##
 ################
-$items = Get-ChildItem -Path .\original_samples | Where-Object {$_.Extension -eq ".wav"} #-Encoding UTF8
+
+$name = "01_sopranoA.wav"
+$in = "001_original_samples/" + $name
+
+executables/x64_Release_Compress.exe $in -q 0.1 -qxy 2
+
+exit
+$items = Get-ChildItem -Path "001_original_samples/" | Where-Object {$_.Extension -eq ".wav"} #-Encoding UTF8
 
 
 
 foreach ($item in $items) {
   $item.Name
-  $in = "original_samples/" + $item.Name
+  $in = "001_original_samples/" + $item.Name
   if ($in -notmatch "_rec" -and $in -notmatch ".m4a" -and $in -notmatch ".mp3" -and $in -notmatch ".opus"){
     executables/x64_Release_Compress.exe $in
 
+
     $compressed_name = $item.Name.replace($item.Extension,".hc")
-    Move-Item -Path ("original_samples/" + $compressed_name) -Destination ("compressed_samples/" + $compressed_name) -Force
+    Move-Item -Path ("001_original_samples/" + $compressed_name) -Destination ("002_compressed_samples/" + $compressed_name) -Force
 
-    executables/x64_Release_Compress.exe "compressed_samples/" + $compressed_name
+    executables/x64_Release_Compress.exe ("002_compressed_samples/" + $compressed_name)
 
-    # $decompressed_name = 
-    # Move-Item -Path "original_samples/" + $compressed_name -Destination "compressed_samples/" + $compressed_name -Force
+    $decompressed_name = $item.Name.replace($item.Extension,"_reconstructed.wav")
+    Move-Item -Path ("002_compressed_samples/" + $decompressed_name) -Destination ("003_decompressed_samples/" + $decompressed_name) -Force
 
   }
 }
-
-# ######################
-# ## Moving .hc files ##
-# ######################
-# $items = Get-ChildItem -Path ./original_samples | Where-Object {$_.Extension -eq ".hc"} #-Encoding UTF8
-
-# foreach ($item in $items) {
-#   $in = "original_samples/" + $item.Name
-#   $out = "compressed_samples/" + $item.Name
-
-#   Move-Item -Path $in -Destination $out -Force
-# }
-

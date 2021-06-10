@@ -567,24 +567,33 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 
 		//double r = std::sqrt(double(n - p - k) / double(m * p));
 
-		double sq = std::sqrt(double(4 * m * m + m * n * p - m * p * p - 13 * m * p + 4 * p * p));
-		double r = (double(2 * m + 2 * p) + sq) / double(m * p);
+		std::cout  << "p=" << p << " m=" << m << " n=" << n << "<<<<<\n";
 
-		double nx_ = r * double(p);
-		double ny_ = r * double(m);		
+		double p_ = p;
+		double m_ = m;
+		double n_ = n;
 
-		double res = (m * r - 4) * (p * r - 4) + p + 5;
+		double a = { 4 * m_ * m_ + m_ * n_ * p_ - m_ * p_ * p_ - 13 * m_ * p_ + 4 * p_ * p_ };
+		double sq = std::sqrt(a);
+		double r = std::min(1.0,(2.0 * m_ + 2.0 * p_ + sq) / (m_ * p_));
 
-		std::cout << r << " " << nx_ << " " << ny_ << " " << res << "<<<<<\n";
+		//r = sqrt(-k + n - p) / (sqrt(m) * sqrt(p));
 
-		int nxmin = 2 * kx + 2;
-		int nymin = 2 * ky + 2;
+		double nx_ = r * p_;
+		double ny_ = r * m_;		
 
-		nx = round(nx_);
-		ny = round(ny_);
+		double res = (m_ * r - 4.0) * (p_ * r - 4.0) + p_ + 5.0;
 
-		nx = nxmin + round(q * double(std::min(nx, p)) - nxmin);
-		ny = nymin + round(q * double(std::min(ny, m)) - nymin);
+		std::cout << a << " " << nx_ << " " << ny_ << " " << res << "<<<<<\n";
+
+		double nxmin = 2 * kx + 2;
+		double nymin = 2 * ky + 2;
+
+		//nx = round(nx_);
+		//ny = round(ny_);
+
+		nx = round(nxmin + q * (nx_ - nxmin));
+		ny = round(nymin + q * (ny_ - nymin));
 	} else {
 		nx = nxmin + round(qxy * double(nxmax - nxmin)); // number of knots in the x axis
 		ny = round(double(k + kx * ky + kx - ky * nx + ky - n + p - nx + 1) / double(kx - nx + 1));
