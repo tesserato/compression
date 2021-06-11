@@ -509,7 +509,6 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 	v_pint Xpcs = compress_fd(WV.W);
 	adjust_xpcs(Xpcs, WV.W);
 
-	//pint n_inner = Xpcs.back() - Xpcs[0];
 	std::vector<double> X;
 	std::vector<double> Y;
 	std::vector<double> Z;
@@ -542,32 +541,9 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 	int nx = 0;
 	int ny = 0;
 
-	//if (qxy <= 0.0 || 1.0 <= qxy) { // qxy will be used to calculate nx and ny	
+	if (qxy <= 0.0 || 1.0 <= qxy) { 
 
-	//	double num = (ky + 1) * (k + kx * ky + kx - ky * nx + ky - n - nx + p + 1) * (2 * kx - p + 2);
-	//	double den = (2 * ky - m + 2);
-
-	//	double qxy = -(num / den - double(2 * (kx + 1) * (ky + 1) * (kx - nx + 1))) / double(k + kx * ky + kx + ky - n + p + 1);
-	//	std::cout << "calculated qxy=" << qxy << "\n";
-	//}
-
-	//int nx = nxmin + round(qxy * double(nxmax - nxmin)); // number of knots in the x axis
-	//int ny = round(double(k + kx * ky + kx - ky * nx + ky - n + p - nx + 1) / double(kx - nx + 1));
-
-	//nx = nxmin + round(q * double(std::min(nx, p) - nxmin));
-	//ny = nymin + round(q * double(std::min(ny, m) - nymin));
-
-	if (qxy <= 0.0 || 1.0 <= qxy) { // qxy will be used to calculate nx and ny	
-		//double s = double(m * m * (kx * kx + 2 * kx + 1) + 2 * m * p * (-2 * k - kx * ky - kx - ky + 2 * n - 2 * p - 1) + p * p * (ky * ky + 2 * ky + 1)) / double(4 * m * p);
-
-		//double sq = -(-4 * k * m * p + kx * kx * m * m - 2 * kx * ky * m * p + 2 * kx * m * m - 2 * kx * m * p + ky * ky * p * p - 2 * ky * m * p + 2 * ky * p * p + m * m + 4 * m * n * p - 4 * m * p * p - 2 * m * p + p * p);
-
-		//double r = double(double(kx * m + ky * p + m + p) + std::sqrt(sq)) / double(2 * m * p);
-		//double r = double(kx * m + ky * p + m + p) / double(2 * m * p);
-
-		//double r = std::sqrt(double(n - p - k) / double(m * p));
-
-		std::cout  << "p=" << p << " m=" << m << " n=" << n << "<<<<<\n";
+		std::cout  << "\np=" << p << " m=" << m << " n=" << n << "<<<<<\n";
 
 		double p_ = p;
 		double m_ = m;
@@ -584,13 +560,11 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 
 		double res = (m_ * r - 4.0) * (p_ * r - 4.0) + p_ + 5.0;
 
-		std::cout << a << " " << nx_ << " " << ny_ << " " << res << "<<<<<\n";
+		std::cout << a << " " << nx_ << " " << ny_ << " " << res << "<<<<<\n\n";
 
 		double nxmin = 2 * kx + 2;
 		double nymin = 2 * ky + 2;
 
-		//nx = round(nx_);
-		//ny = round(ny_);
 
 		nx = round(nxmin + q * (nx_ - nxmin));
 		ny = round(nymin + q * (ny_ - nymin));
@@ -604,7 +578,6 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 
 	std::cout << "n=" << n << " rate=" << double(WV.W.size()) / double(p + k + (nx - kx - 1) * (ny - ky - 1)) << " x0=" << Xpcs[0] << " x1=" << Xpcs.back() << " p=" << p << " m=" << m << " nx=" << nx << " ny=" << ny << "\n";
 
-	//return 0;
 
 	int nmax = std::max(nx, ny);
 	std::vector<double> tx(nmax, 0.0);                        // X knots
@@ -621,31 +594,32 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 	double dx = 1.0 / double(nx - 2 * kx);
 	for (size_t i = kx + 1; i < nx - kx - 1; i++) {
 		tx[i] = double(i - kx) * dx;
-		//std::cout << tx[i] << "\n";
 	}
-	//std::cout  << "\n";
 
 	double dy = 1.0 / double(ny - 2 * ky);
 	for (size_t i = ky; i < ny - ky - 1; i++) {
 		ty[i] = double(i - ky) * dy;
 	}
 
-	//std::vector<double> Z(WV.W.begin() + Xpcs[0], WV.W.begin() + Xpcs.back());
-
-	write_vector(X, "X.csv");
-	write_vector(Y, "Y.csv");
-	write_vector(Z, "Z.csv");
-	write_vector(tx, "Tx_b.csv");
-	write_vector(ty, "Ty_b.csv");
+	#ifdef DEBUG
+		write_vector(X, "X.csv");
+		write_vector(Y, "Y.csv");
+		write_vector(Z, "Z.csv");
+		write_vector(tx, "Tx_b.csv");
+		write_vector(ty, "Ty_b.csv");
+	#endif
 	std::vector<double> C = Fit_Bspline_Surface(X.size(), &X[0], &Y[0], &Z[0], nx, ny, kx, ky, &tx[0], &ty[0]);
-
 	std::vector<float> CC(C.begin(), C.end());
-	write_vector(C, "C.csv");
+
+	#ifdef DEBUG
+		write_vector(C, "C.csv");
+	#endif
 	tx.resize(nx);
 	ty.resize(ny);
-	write_vector(tx, "Tx.csv");
-	write_vector(ty, "Ty.csv");
-
+	#ifdef DEBUG
+		write_vector(tx, "Tx.csv");
+		write_vector(ty, "Ty.csv");
+	#endif
 	std::vector<int> P = { p, nx, ny, int(WV.fps), int(WV.W.size()) };
 	std::ofstream data_file;      // pay attention here! ofstream
 	data_file.open(outpath, std::ios::out | std::ios::binary | std::fstream::trunc);
@@ -653,7 +627,9 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 	data_file.write((char*)&T[0], T.size() * sizeof(unsigned short));
 	data_file.write((char*)&CC[0], CC.size() * sizeof(float));
 	data_file.close();
-	write_vector(T, "T.csv");
+	#ifdef DEBUG
+		write_vector(T, "T.csv");
+	#endif
 }
 
 void decompress(std::string inpath, std::string outpath, int kx = 3, int ky = 3) {
@@ -701,9 +677,10 @@ void decompress(std::string inpath, std::string outpath, int kx = 3, int ky = 3)
 
 	p = T.size();
 
-	write_vector(T, "T_after.csv");
-
-	std::cout << "p=" << p << " nx=" << nx << " ny=" << ny << " fps=" << fps << " n=" << n << "\n";
+	#ifdef DEBUG
+		write_vector(T, "T_after.csv");
+		std::cout << "p=" << p << " nx=" << nx << " ny=" << ny << " fps=" << fps << " n=" << n << "\n";
+	#endif
 
 	std::vector<double> tx(nx, 0.0);                        // X knots
 	std::vector<double> ty(ny, 0.0);                         // Y knots
@@ -740,7 +717,9 @@ void decompress(std::string inpath, std::string outpath, int kx = 3, int ky = 3)
 	Wav Rec(Z, fps);
 	Rec.write(outpath);
 
-	write_vector(C, "C_after.csv");
+	#ifdef DEBUG
+		write_vector(C, "C_after.csv");
+	#endif
 }
 
 

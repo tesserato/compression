@@ -1,8 +1,10 @@
 
-# executables/x64_Release_Compress.exe $in -q $q -qxy $qxy
+$orig_path = "001_original_samples/"
+$comp_path = "005_compressed_samples_PC_qxy/"
+$dcmp_path = "006_decompressed_samples_PC_qxy/"
+$rsut_path = "009_results_PC/PC_qxy.csv"
 
-
-$items = Get-ChildItem -Path 001_original_samples | Where-Object { $_.Extension -eq ".wav" }
+$items = Get-ChildItem -Path $orig_path | Where-Object { $_.Extension -eq ".wav" }
 
 $results = @()
 foreach ($item in $items) {
@@ -12,7 +14,7 @@ foreach ($item in $items) {
     $q = $i / 5
     for ($j = 0; $j -le 5; $j++) {
       $qxy = $j / 5
-      $in = "001_original_samples/" + $item.Name
+      $in = $orig_path + $item.Name
       # $out = "decompressed_samples/" + $item.Name.replace($item.Extension, "mp3.wav")
 
       $line = [ordered] @{
@@ -23,8 +25,8 @@ foreach ($item in $items) {
         "Compression time (ms)" = (Measure-Command { executables/x64_Release_Compress.exe $in -q $q -qxy $qxy | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
       }
       $name = $item.Name.replace($item.Extension, "")
-      $in = "001_original_samples/" + $name + ".pc"
-      $out = "005_compressed_samples_PC/" + $name + "-q=" + $q + "-qxy=" + $qxy + "-.pc"
+      $in  = $orig_path + $name + ".pc"
+      $out = $comp_path + $name + "-q=" + $q + "-qxy=" + $qxy + "-.pc"
       Move-Item -Path $in -Destination $out -Force
 
       $line += @{
@@ -32,15 +34,15 @@ foreach ($item in $items) {
         "Decompression time (ms" = (Measure-Command { executables/x64_Release_Compress.exe $out -a pc | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
       }
 
-      $in = "005_compressed_samples_PC/" + $name + "-q=" + $q + "-qxy=" + $qxy + "-pc.wav"
-      $out = "006_decompressed_samples_PC/" + $name + "-q=" + $q + "-qxy=" + $qxy + ".wav"
+      $in  = $comp_path + $name + "-q=" + $q + "-qxy=" + $qxy + "-pc.wav"
+      $out = $dcmp_path + $name + "-q=" + $q + "-qxy=" + $qxy + ".wav"
       Move-Item -Path $in -Destination $out -Force
 
       $results += New-Object PSObject -Property $line
     }
   }
 }
-$results | export-csv -Path ("./007_results_PC/PC.csv") -NoTypeInformation
+$results | export-csv -Path $rsut_path -NoTypeInformation
 
 # exit
 
