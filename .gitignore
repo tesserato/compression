@@ -9,3 +9,7 @@ intermediate
 *.csv
 006_decompressed_samples_PC
 005_compressed_samples_PC
+005_compressed_samples_PC_qxy
+006_decompressed_samples_PC_qxy
+008_decompressed_samples_PC
+007_compressed_samples_PC

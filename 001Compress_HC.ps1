@@ -1,16 +1,19 @@
-
-$runs = 1
-
 $path_original     = "001_original_samples/"
 $path_compressed   = "002_compressed_samples/"
 $path_decompressed = "003_decompressed_samples/"
+$path_result_cmp   = "004_results/Compression_time_milliseconds/"
+$path_result_dec   = "004_results/Decompression_time_milliseconds/"
+
+$start = 10
+$runs = 1000
+
 ###############################################################################################################
 ## COMPRESSING ################################################################################################
 ###############################################################################################################
 
 $items = Get-ChildItem -Path $path_original | Where-Object {$_.Extension -eq ".wav"} #-Encoding UTF8
 
-for ($ctr = 1 ; $ctr -le $runs ; $ctr++){
+for ($ctr = $start ; $ctr -le $runs ; $ctr++){
 
   $results = @()
 
@@ -46,7 +49,7 @@ for ($ctr = 1 ; $ctr -le $runs ; $ctr++){
     }
   }
 
-  $results | export-csv -Path ("004_results/Compression_time_milliseconds/" + $ctr + ".csv") -NoTypeInformation
+  $results | export-csv -Path ($path_result_cmp + $ctr + ".csv") -NoTypeInformation
 }
 
 ######################
@@ -64,7 +67,7 @@ foreach ($item in $items) {
 ###############################################################################################################
 ## DECOMPRESSING ##############################################################################################
 ###############################################################################################################
-for ($ctr = 1 ; $ctr -le $runs ; $ctr++){
+for ($ctr = $start ; $ctr -le $runs ; $ctr++){
 
   $results = @()
 
@@ -99,7 +102,7 @@ for ($ctr = 1 ; $ctr -le $runs ; $ctr++){
     $results += New-Object PSObject -Property $line
   }
 
-  $results | export-csv -Path ("./004_results/Decompression_time_milliseconds/" + $ctr + ".csv") -NoTypeInformation
+  $results | export-csv -Path ($path_result_dec + $ctr + ".csv") -NoTypeInformation
 }
 ###########################
 ## Moving .cmp.wav files ##

@@ -559,15 +559,14 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 		double ny_ = r * m_;		
 
 		double res = (m_ * r - 4.0) * (p_ * r - 4.0) + p_ + 5.0;
-
 		std::cout << a << " " << nx_ << " " << ny_ << " " << res << "<<<<<\n\n";
 
 		double nxmin = 2 * kx + 2;
 		double nymin = 2 * ky + 2;
 
-
-		nx = round(nxmin + q * (nx_ - nxmin));
-		ny = round(nymin + q * (ny_ - nymin));
+		double buffer = 0.0;// double(n) / 100;
+		nx = round(nxmin + q * (nx_ - nxmin - buffer));
+		ny = round(nymin + q * (ny_ - nymin - buffer));
 	} else {
 		nx = nxmin + round(qxy * double(nxmax - nxmin)); // number of knots in the x axis
 		ny = round(double(k + kx * ky + kx - ky * nx + ky - n + p - nx + 1) / double(kx - nx + 1));

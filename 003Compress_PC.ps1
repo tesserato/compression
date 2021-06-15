@@ -9,7 +9,7 @@ $items = Get-ChildItem -Path $orig_path | Where-Object { $_.Extension -eq ".wav"
 $results = @()
 foreach ($item in $items) {
   $item.Name
-  for ($i = 0; $i -le 10; $i++) {
+  for ($i = 0; $i -le 8; $i++) {
     $q = $i / 10
     $in = $orig_path + $item.Name
     $line = [ordered] @{
@@ -21,7 +21,7 @@ foreach ($item in $items) {
     }
     $name = $item.Name.replace($item.Extension, "")
     $in = $orig_path + $name + ".pc"
-    $out = $comp_path + $name + "-q=" + $q + "-.pc"
+    $out = $comp_path + $name + "-q=" + $q.ToString("N2") + "-.pc"
     Move-Item -Path $in -Destination $out -Force
 
     $line += @{
@@ -29,8 +29,8 @@ foreach ($item in $items) {
       "Decompression time (ms" = (Measure-Command { executables/x64_Release_Compress.exe $out -a pc | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
     }
 
-    $in = $comp_path + $name + "-q=" + $q + "-pc.wav"
-    $out = $dcmp_path + $name + "-q=" + $q + ".wav"
+    $in = $comp_path + $name + "-q=" + $q.ToString("N2") + "-pc.wav"
+    $out = $dcmp_path + $name + "-q=" + $q.ToString("N2") + ".wav"
     Move-Item -Path $in -Destination $out -Force
 
     $results += New-Object PSObject -Property $line
