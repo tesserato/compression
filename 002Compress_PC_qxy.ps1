@@ -1,5 +1,5 @@
 
-$orig_path = "001_original_samples/"
+$orig_path = "000_original_samples/"
 $comp_path = "005_compressed_samples_PC_qxy/"
 $dcmp_path = "006_decompressed_samples_PC_qxy/"
 $rsut_path = "009_results_PC/PC_qxy.csv"
@@ -15,22 +15,23 @@ foreach ($item in $items) {
     for ($j = 0; $j -le 5; $j++) {
       $qxy = $j / 5
       $in = $orig_path + $item.Name
-      # $out = "decompressed_samples/" + $item.Name.replace($item.Extension, "mp3.wav")
+      $orig_size = $item.Length / 1kb
 
       $line = [ordered] @{
         Sample                  = $item.Name.replace($item.Extension, "")
         q                       = $q
         qxy                     = $qxy
-        "Original size (KB)"    = $item.Length / 1kb
+        "Original size (KB)"    = $orig_size
         "Compression time (ms)" = (Measure-Command { executables/x64_Release_Compress.exe $in -q $q -qxy $qxy | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
       }
       $name = $item.Name.replace($item.Extension, "")
       $in  = $orig_path + $name + ".pc"
       $out = $comp_path + $name + "-q=" + $q + "-qxy=" + $qxy + "-.pc"
       Move-Item -Path $in -Destination $out -Force
-
+      $comp_size = (Get-Item $out).Length / 1kb
       $line += @{
-        "size (KB)"              = (Get-Item $out).Length / 1kb
+        "size (KB)"              = $comp_size
+        "rate"                   = $orig_size / $comp_size
         "Decompression time (ms" = (Measure-Command { executables/x64_Release_Compress.exe $out -a pc | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
       }
 

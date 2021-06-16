@@ -1,4 +1,4 @@
-$path_original     = "001_original_samples/"
+$path_original     = "000_original_samples/"
 $path_compressed   = "002_compressed_samples/"
 $path_decompressed = "003_decompressed_samples/"
 $path_result_cmp   = "004_results/Compression_time_milliseconds/"
