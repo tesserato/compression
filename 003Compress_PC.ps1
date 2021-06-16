@@ -27,8 +27,8 @@ foreach ($item in $items) {
 
     $comp_size = (Get-Item $out).Length / 1kb
     $line += @{
-      "size (KB)"              = $comp_size
-      "rate"                   = $orig_size / $comp_size
+      "Size (KB)"              = $comp_size
+      "Rate"                   = $orig_size / $comp_size
       "Decompression time (ms" = (Measure-Command { executables/x64_Release_Compress.exe $out -a pc | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
     }
 

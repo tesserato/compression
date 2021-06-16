@@ -13,3 +13,7 @@ intermediate
 006_decompressed_samples_PC_qxy
 008_decompressed_samples_PC
 007_compressed_samples_PC
+009_compressed_samples_codecs
+001_ViSQOL/HC
+001_ViSQOL/original_audio_mode
+001_ViSQOL/original_speech_mode
