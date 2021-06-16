@@ -4,17 +4,16 @@ $path_decompressed = "003_decompressed_samples/"
 $path_result_cmp   = "004_results/Compression_time_milliseconds/"
 $path_result_dec   = "004_results/Decompression_time_milliseconds/"
 
-$start = 10
+$start = 1
 $runs = 1000
 
-###############################################################################################################
-## COMPRESSING ################################################################################################
-###############################################################################################################
 
 $items = Get-ChildItem -Path $path_original | Where-Object {$_.Extension -eq ".wav"} #-Encoding UTF8
 
 for ($ctr = $start ; $ctr -le $runs ; $ctr++){
-
+  ###############################################################################################################
+  ## COMPRESSING ################################################################################################
+  ###############################################################################################################
   $results = @()
 
   foreach ($item in $items) {
@@ -48,33 +47,16 @@ for ($ctr = $start ; $ctr -le $runs ; $ctr++){
       $results += New-Object PSObject -Property $line
     }
   }
-
   $results | export-csv -Path ($path_result_cmp + $ctr + ".csv") -NoTypeInformation
-}
 
-######################
-## Moving .hc files ##
-######################
-$items = Get-ChildItem -Path $path_original | Where-Object {$_.Extension -eq ".hc"} #-Encoding UTF8
-
-foreach ($item in $items) {
-  $in = $path_original + $item.Name
-  $out = $path_compressed + $item.Name
-
-  Move-Item -Path $in -Destination $out -Force
-}
-
-###############################################################################################################
-## DECOMPRESSING ##############################################################################################
-###############################################################################################################
-for ($ctr = $start ; $ctr -le $runs ; $ctr++){
-
+  ###############################################################################################################
+  ## DECOMPRESSING ##############################################################################################
+  ###############################################################################################################
   $results = @()
 
   foreach ($item in $items) {
     $item.Name
-    $in = $path_compressed + $item.Name
-    # $out = "decompressed_samples/" + $item.Name.replace($item.Extension, "mp3.wav")
+    $in = $path_original + $item.Name.replace($item.Extension, ".hc")
 
     $line = [ordered] @{
       Sample = $item.Name.replace($item.Extension,"")
@@ -104,13 +86,26 @@ for ($ctr = $start ; $ctr -le $runs ; $ctr++){
 
   $results | export-csv -Path ($path_result_dec + $ctr + ".csv") -NoTypeInformation
 }
-###########################
-## Moving .cmp.wav files ##
-###########################
-$items = Get-ChildItem -Path $path_compressed | Where-Object {$_.Name.EndsWith(".hc.wav")} #-Encoding UTF8
+
+######################
+## Moving .hc files ##
+######################
+$items = Get-ChildItem -Path $path_original | Where-Object {$_.Extension -eq ".hc"} #-Encoding UTF8
 
 foreach ($item in $items) {
-  $in = $path_compressed + $item.Name
+  $in = $path_original + $item.Name
+  $out = $path_compressed + $item.Name
+
+  Move-Item -Path $in -Destination $out -Force
+}
+
+###########################
+## Moving .hc.wav files ##
+###########################
+$items = Get-ChildItem -Path $path_original | Where-Object {$_.Name.EndsWith(".hc.wav")} #-Encoding UTF8
+
+foreach ($item in $items) {
+  $in = $path_original + $item.Name
   $out = $path_decompressed + $item.Name
   Move-Item -Path $in -Destination $out -Force
 }

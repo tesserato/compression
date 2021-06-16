@@ -2,7 +2,7 @@
 $orig_path = "000_original_samples/"
 $comp_path = "007_compressed_samples_PC/"
 $dcmp_path = "008_decompressed_samples_PC/"
-$rsut_path = "009_results_PC/PC.csv"
+$rsut_path = "010_results_PC/PC.csv"
 
 $items = Get-ChildItem -Path $orig_path | Where-Object { $_.Extension -eq ".wav" }
 
@@ -27,8 +27,8 @@ foreach ($item in $items) {
 
     $comp_size = (Get-Item $out).Length / 1kb
     $line += @{
-      "size (KB)"              = $comp_size
-      "rate"                   = $orig_size / $comp_size
+      "Size (KB)"              = $comp_size
+      "Rate"                   = $orig_size / $comp_size
       "Decompression time (ms" = (Measure-Command { executables/x64_Release_Compress.exe $out -a pc | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
     }
 

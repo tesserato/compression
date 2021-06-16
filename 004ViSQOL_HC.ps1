@@ -50,50 +50,50 @@ foreach ($item in $items) {
   $obj = & $exe --reference_file $wav_audio --degraded_file $cmp_audio --similarity_to_quality_model $model  
   $line = [ordered] @{
     Sample = $item.Name.replace($item.Extension,"")
-    Audio_HC = $obj[2].Split(":")[1].Trim()
+    "Audio HC" = $obj[2].Split(":")[1].Trim()
   }
 
   $obj = & $exe --reference_file $wav_speech --degraded_file $cmp_speech --similarity_to_quality_model $model --use_speech_mode
   $line += @{
-    Speech_HC = $obj[2].Split(":")[1].Trim()
+    "Speech HC" = $obj[2].Split(":")[1].Trim()
   }
 
 
   $obj = & $exe --reference_file $wav_audio --degraded_file $mp3_audio --similarity_to_quality_model $model  
   $line += @{
-    Audio_MP3 = $obj[2].Split(":")[1].Trim()
+    "Audio MP3" = $obj[2].Split(":")[1].Trim()
   }
 
   $obj = & $exe --reference_file $wav_speech --degraded_file $mp3_speech --similarity_to_quality_model $model --use_speech_mode
   $line += @{
-    Speech_MP3 = $obj[2].Split(":")[1].Trim()
+    "Speech MP3" = $obj[2].Split(":")[1].Trim()
   }
 
 
   $obj = & $exe --reference_file $wav_audio --degraded_file $m4a_audio --similarity_to_quality_model $model  
   $line += @{
-    Audio_AAC = $obj[2].Split(":")[1].Trim()
+    "Audio AAC" = $obj[2].Split(":")[1].Trim()
   }
 
   $obj = & $exe --reference_file $wav_speech --degraded_file $m4a_speech --similarity_to_quality_model $model --use_speech_mode
   $line += @{
-    Speech_AAC = $obj[2].Split(":")[1].Trim()
+    "Speech AAC" = $obj[2].Split(":")[1].Trim()
   }
 
 
   $obj = & $exe --reference_file $wav_audio --degraded_file $opus_audio --similarity_to_quality_model $model  
   $line += @{
-    Audio_Opus = $obj[2].Split(":")[1].Trim()
+    "Audio Opus" = $obj[2].Split(":")[1].Trim()
   }
 
   $obj = & $exe --reference_file $wav_speech --degraded_file $opus_speech --similarity_to_quality_model $model --use_speech_mode
   $line += @{
-    Speech_Opus = $obj[2].Split(":")[1].Trim()
+    "Speech Opus" = $obj[2].Split(":")[1].Trim()
   }
 
   $results += New-Object PSObject -Property $line
 }
 
-$results | export-csv -Path ($path_results + "Quality_ViSQOL.csv") -NoTypeInformation
+$results | export-csv -Path ($path_results + "HC_Quality_ViSQOL.csv") -NoTypeInformation
 
 
