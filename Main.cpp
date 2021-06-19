@@ -556,24 +556,18 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 		double m_ = m;
 		double n_ = n;
 
-		//double a = { 4 * m_ * m_ + m_ * n_ * p_ - m_ * p_ * p_ - 13 * m_ * p_ + 4 * p_ * p_ };
-		//double sq = std::sqrt(a);
 		double r = (2 * m_ + 2 * p_ + std::sqrt(16 * m_ * m_ + 2 * m_ * n_ * p_ - 4 * m_ * p_ * p_ - 52 * m_ * p_ + 16 * p_ * p_) / 2) / (m_ * p_);
-
-		//r = sqrt(-k + n - p) / (sqrt(m) * sqrt(p));
 
 		double nx_ = r * p_;
 		double ny_ = r * m_;
 
 		double res = (m_ * r - 4.0) * (p_ * r - 4.0) + p_ + 5.0;
-		//std::cout << r << " " << nx_ << " " << ny_ << " " << res << "<<<<<\n\n";
 
 		double nxmin = 2 * kx + 2;
 		double nymin = 2 * ky + 2;
 
-		double buffer = 0.0;// double(n) / 100;
-		nx = round(nxmin + q * (nx_ - nxmin - buffer));
-		ny = round(nymin + q * (ny_ - nymin - buffer));
+		nx = round(nxmin + q * (nx_ - nxmin));
+		ny = round(nymin + q * (ny_ - nymin));
 	}
 
 	std::cout << "n=" << n << " rate=" << double(WV.W.size()) / double(p + k + (nx - kx - 1) * (ny - ky - 1)) << " x0=" << Xpcs[0] << " x1=" << Xpcs.back() << " p=" << p << " m=" << m << " nx=" << nx << " ny=" << ny << "\n";

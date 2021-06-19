@@ -14,7 +14,7 @@ foreach ($item in $items) {
   $inpc = $orig_path + $name + ".pc"
   $orig_size = $item.Length / 1kb
   $orig_duration = [double](ffprobe -i $inwav -show_entries format=duration -v quiet -of csv="p=0") * 1000
-  for ($i = 0; $i -le 8; $i++) {
+  for ($i = 0; $i -le 10; $i++) {
     $q = $i / 10
     $comp_time = (Measure-Command { executables/x64_Release_Compress.exe $inwav -q $q | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
     $out = $comp_path + $name + "-q=" + $q.ToString("N2") + "-.pc"

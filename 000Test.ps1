@@ -7,7 +7,7 @@ $name = "15_trumpet.wav"
 # $name = "01_sopranoA.wav"
 $in = "000_original_samples/" + $name
 
-executables/x64_Release_Compress.exe $in -q 1
+executables/x64_Release_Compress.exe $in -q .2
 
 exit
 

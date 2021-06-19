@@ -13,7 +13,7 @@
 #include <boost/math/interpolators/cardinal_cubic_b_spline.hpp>
 #include <filesystem> // to list all files in a directory
 
-#define DEBUG // for verbose
+//#define DEBUG // for verbose
 
 typedef unsigned long long pint;
 typedef long long          inte;
@@ -73,22 +73,46 @@ std::vector<double> Fit_Bspline_Surface(int m, double* x, double* y, double* z, 
 		b2 = b1 + u - kx;
 	}
 
-	pint plwrk1 = u * v * (2 + b1 + b2) + 2 * (u + v + km * (m + ne) + ne - kx - ky) + b2 + 1;
-	double* wrk1 = new double[plwrk1];
-	int lwrk1 = plwrk1;
+	int lwrk1 = u * v * (2 + b1 + b2) + 2 * (u + v + km * (m + ne) + ne - kx - ky) + b2 + 1;
+	double* wrk1 = nullptr;
+	try {
+		//delete[] wrk1;
+		wrk1 = new double[lwrk1];
+	}
+	catch (const std::exception e) {
+		std::cout << "ERROR: Couldn't create array of double with size lwrk1=" << lwrk1 << " - ";
+		std::cout << e.what() << "\n";
+		exit(EXIT_FAILURE);
+	}
 
-	pint plwrk2 = u * v * (b2 + 1) + b2;
-	double* wrk2 = new double[plwrk2];
-	int lwrk2 = plwrk2;
+	int lwrk2 = u * v * (b2 + 1) + b2;
+	double* wrk2 = nullptr;
+	try {
+		//delete[] wrk2;
+		wrk2 = new double[lwrk2];
+	}
+	catch (const std::exception e) {
+		std::cout << "ERROR: Couldn't create array of double with size lwrk2=" << lwrk2 << " - ";
+		std::cout << e.what() << "\n";
+		exit(EXIT_FAILURE);
+	}
 
-	pint pkwrk = m + (nxest - 2 * kx - 1) * (nyest - 2 * ky - 1);
-	int* iwrk = new int[pkwrk];
-	int kwrk = pkwrk;
+
+	int kwrk = m + (nxest - 2 * kx - 1) * (nyest - 2 * ky - 1);	
+	int* iwrk = nullptr;
+	try {
+		//delete[] iwrk;
+		iwrk = new int[kwrk];
+	}
+	catch (const std::exception e) {
+		std::cout << "ERROR: Couldn't create array of int with size kwrk=" << kwrk << " - ";
+		std::cout << e.what() << "\n";
+		exit(EXIT_FAILURE);
+	}
 
 	double eps = std::numeric_limits<double>::epsilon();
 
 	int ier = 0;
-	//double delta = 0.000001;
 	auto xb = 0.0;
 	auto xe = 1.0;
 	auto yb = 0.0;
