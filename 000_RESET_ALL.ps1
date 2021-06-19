@@ -20,16 +20,18 @@ $paths =
 "009_compressed_samples_codecs/",
 "010_results_PC/"
 
-foreach ($path in $paths){
-  $path
-  Remove-Item $path -Recurse
-  New-Item -ItemType Directory -Force -Path $path
-}
+# foreach ($path in $paths){
+#   $path
+#   Remove-Item $path -Recurse
+#   New-Item -ItemType Directory -Force -Path $path
+# }
 
-./001Compress_HC.ps1
+# ./001Compress_HC.ps1
 
-python ./001Consolidate_HC.py
+# python ./001Consolidate_HC.py
 
 ./002Compress_PC_qxy.ps1
 
 ./003Compress_PC.ps1
+
+./004Compress.ps1

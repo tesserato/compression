@@ -4,7 +4,7 @@ $path_decompressed = "003_decompressed_samples/"
 $path_result_cmp   = "004_results/Compression_time_milliseconds/"
 $path_result_dec   = "004_results/Decompression_time_milliseconds/"
 
-$start = 1
+$start = 826
 $runs = 1000
 
 

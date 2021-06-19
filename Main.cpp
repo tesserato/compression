@@ -549,9 +549,9 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 		double m_ = m;
 		double n_ = n;
 
-		double a = { 4 * m_ * m_ + m_ * n_ * p_ - m_ * p_ * p_ - 13 * m_ * p_ + 4 * p_ * p_ };
-		double sq = std::sqrt(a);
-		double r = std::min(1.0,(2.0 * m_ + 2.0 * p_ + sq) / (m_ * p_));
+		//double a = { 4 * m_ * m_ + m_ * n_ * p_ - m_ * p_ * p_ - 13 * m_ * p_ + 4 * p_ * p_ };
+		//double sq = std::sqrt(a);
+		double r = (2 * m_ + 2 * p_ + std::sqrt(16 * m_ * m_ + 2 * m_ * n_ * p_ - 4 * m_ * p_ * p_ - 52 * m_ * p_ + 16 * p_ * p_) / 2) / (m_ * p_);
 
 		//r = sqrt(-k + n - p) / (sqrt(m) * sqrt(p));
 
@@ -559,7 +559,7 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 		double ny_ = r * m_;		
 
 		double res = (m_ * r - 4.0) * (p_ * r - 4.0) + p_ + 5.0;
-		std::cout << a << " " << nx_ << " " << ny_ << " " << res << "<<<<<\n\n";
+		std::cout << r << " " << nx_ << " " << ny_ << " " << res << "<<<<<\n\n";
 
 		double nxmin = 2 * kx + 2;
 		double nymin = 2 * ky + 2;

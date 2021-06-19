@@ -8,35 +8,39 @@ $items = Get-ChildItem -Path $orig_path | Where-Object { $_.Extension -eq ".wav"
 
 $results = @()
 foreach ($item in $items) {
-  "\n"
   $item.Name
+  $inwav = $orig_path + $item.Name
+  $inpc = $orig_path + $item.Name.replace($item.Extension, "") + ".pc"
+  $orig_size = $item.Length / 1kb
+  $orig_duration = [double](ffprobe -i $in -show_entries format=duration -v quiet -of csv="p=0") * 1000
+
   for ($i = 1; $i -le 5; $i++) {
     $q = $i / 5
     for ($j = 0; $j -le 5; $j++) {
       $qxy = $j / 5
-      $in = $orig_path + $item.Name
-      $orig_size = $item.Length / 1kb
-
+      $comp_time = (Measure-Command { executables/x64_Release_Compress.exe $inwav -q $q -qxy $qxy | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
       $line = [ordered] @{
         Sample                  = $item.Name.replace($item.Extension, "")
-        q                       = $q
-        qxy                     = $qxy
+        q                       = $q.ToString("N2")
+        qxy                     = $qxy.ToString("N2")
         "Original size (KB)"    = $orig_size
-        "Compression time (ms)" = (Measure-Command { executables/x64_Release_Compress.exe $in -q $q -qxy $qxy | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
+        "Compression time (ms)" = $comp_time
+        "Comp Time / Orig dur"  = $comp_time / $orig_duration
       }
       $name = $item.Name.replace($item.Extension, "")
-      $in  = $orig_path + $name + ".pc"
-      $out = $comp_path + $name + "-q=" + $q + "-qxy=" + $qxy + "-.pc"
-      Move-Item -Path $in -Destination $out -Force
+      $out = $comp_path + $name + "-q=" + $q.ToString("N2") + "-qxy=" + $qxy.ToString("N2") + "-.pc"
+      Move-Item -Path $inpc -Destination $out -Force
       $comp_size = (Get-Item $out).Length / 1kb
-      $line += @{
+      $decomp_time = (Measure-Command { executables/x64_Release_Compress.exe $out -a pc | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
+      $line += [ordered] @{
         "size (KB)"              = $comp_size
         "rate"                   = $orig_size / $comp_size
-        "Decompression time (ms" = (Measure-Command { executables/x64_Release_Compress.exe $out -a pc | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
+        "Decompression time (ms" = $decomp_time
+        "Decomp Time / Orig dur" = $decomp_time / $orig_duration
       }
 
-      $in  = $comp_path + $name + "-q=" + $q + "-qxy=" + $qxy + "-pc.wav"
-      $out = $dcmp_path + $name + "-q=" + $q + "-qxy=" + $qxy + ".wav"
+      $in  = $comp_path + $name + "-q=" + $q.ToString("N2") + "-qxy=" + $qxy.ToString("N2") + "-pc.wav"
+      $out = $dcmp_path + $name + "-q=" + $q.ToString("N2") + "-qxy=" + $qxy.ToString("N2") + ".wav"
       Move-Item -Path $in -Destination $out -Force
 
       $results += New-Object PSObject -Property $line

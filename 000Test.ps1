@@ -3,12 +3,34 @@
 ## Converting ##
 ################
 
-$name = "01_sopranoA.wav"
-$in = "001_original_samples/" + $name
+$name = "15_trumpet.wav"
+# $name = "01_sopranoA.wav"
+$in = "000_original_samples/" + $name
 
-executables/x64_Release_Compress.exe $in -q 0.9
+executables/x64_Release_Compress.exe $in -q 0
 
 exit
+
+
+$job = Start-Job -Name "job" -ScriptBlock {
+  # $comp_time = (Measure-Command { executables/x64_Release_Compress.exe $in -q 1 | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
+  executables/x64_Release_Compress.exe $in -q 1
+}
+
+
+$job | Wait-Job -Timeout 0.1 # seconds
+
+
+# Stop-Job -Name "job"
+
+$job
+# $comp_time
+# $job | Where-Object {$_.State -ne "Completed"} | Stop-Job
+if ($job.State -eq "Running"){
+  $job| Stop-Job
+  Write-Output "done"
+}
+
 # $items = Get-ChildItem -Path "001_original_samples/" | Where-Object {$_.Extension -eq ".wav"} #-Encoding UTF8
 
 
