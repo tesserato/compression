@@ -13,7 +13,7 @@
 #include <boost/math/interpolators/cardinal_cubic_b_spline.hpp>
 #include <filesystem> // to list all files in a directory
 
-//#define DEBUG // for verbose
+#define DEBUG // for verbose
 
 typedef unsigned long long pint;
 typedef long long          inte;
@@ -36,8 +36,9 @@ extern "C" {
 }
 
 std::vector<double> Fit_Bspline_Surface(int m, double* x, double* y, double* z, int nx, int ny, int kx, int ky, double* tx, double* ty) {
-	// Number of data points
-	//int m = x.size();
+	#ifdef DEBUG
+		std::cout << "Fit_Bspline_Surface 01\n";
+	#endif // DEBUG
 
 	int nxest = nx; // max number of knots in the x axis
 	int nyest = ny; // max number of knots in the y axis
@@ -72,14 +73,17 @@ std::vector<double> Fit_Bspline_Surface(int m, double* x, double* y, double* z, 
 		b2 = b1 + u - kx;
 	}
 
-	int lwrk1 = u * v * (2 + b1 + b2) + 2 * (u + v + km * (m + ne) + ne - kx - ky) + b2 + 1;
-	double* wrk1 = new double[lwrk1];
+	pint plwrk1 = u * v * (2 + b1 + b2) + 2 * (u + v + km * (m + ne) + ne - kx - ky) + b2 + 1;
+	double* wrk1 = new double[plwrk1];
+	int lwrk1 = plwrk1;
 
-	int lwrk2 = u * v * (b2 + 1) + b2;
-	double* wrk2 = new double[lwrk2];
+	pint plwrk2 = u * v * (b2 + 1) + b2;
+	double* wrk2 = new double[plwrk2];
+	int lwrk2 = plwrk2;
 
-	int kwrk = m + (nxest - 2 * kx - 1) * (nyest - 2 * ky - 1);
-	int* iwrk = new int[kwrk];
+	pint pkwrk = m + (nxest - 2 * kx - 1) * (nyest - 2 * ky - 1);
+	int* iwrk = new int[pkwrk];
+	int kwrk = pkwrk;
 
 	double eps = std::numeric_limits<double>::epsilon();
 
@@ -89,10 +93,12 @@ std::vector<double> Fit_Bspline_Surface(int m, double* x, double* y, double* z, 
 	auto xe = 1.0;
 	auto yb = 0.0;
 	auto ye = 1.0;
-	std::cout << "yb=" << yb << " ye=" << ye << "\n";
-	std::cout << m << " " << nx << " " << ny << " " << nxest << " " << nyest << "\n";
+	//std::cout << "yb=" << yb << " ye=" << ye << "\n";
+	//std::cout << m << " " << nx << " " << ny << " " << nxest << " " << nyest << "\n";
 	SURFIT(&iopt, &m, x, y, z, w, &xb, &xe, &yb, &ye, &kx, &ky, &smoothing, &nxest, &nyest, &nmax, &eps, &nx, tx, &ny, ty, c, &fp, wrk1, &lwrk1, wrk2, &lwrk2, iwrk, &kwrk, &ier);
-	std::cout << m << " " << nx << " " << ny << " " << nxest << " " << nyest << "\n";
+	#ifdef DEBUG
+		std::cout << "Fit_Bspline_Surface 02\n";
+	#endif // DEBUG
 	if (ier > 0) {
 		if (ier >= 10) {
 			std::stringstream s;

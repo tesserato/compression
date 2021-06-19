@@ -534,16 +534,23 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 	const int n = WV.W.size();
 	const int k = 5;
 
-	int nxmax = (kx * ky + kx + ky + n - p + 1 - k) / (ky + 1);
 	int nxmin = 2 * kx + 2;
 	int nymin = 2 * ky + 2;
 
 	int nx = 0;
 	int ny = 0;
 
-	if (qxy <= 0.0 || 1.0 <= qxy) { 
+	if (0.0 <= qxy && qxy <= 1.0) { 
+		double nxmax = (-k + kx * ky + kx + ky + n / 2.0 - p + 1) / (ky + 1);
 
-		std::cout  << "\np=" << p << " m=" << m << " n=" << n << "<<<<<\n";
+		nx = nxmin + (qxy * (nxmax - nxmin)); // number of knots in the x axis
+		ny = (k + kx * ky + kx - ky * nx + ky - n / 2.0 - nx + p + 1) / (kx - nx + 1);
+
+		nx = nxmin + round(q * (std::min(nx, p) - nxmin));
+		ny = nymin + round(q * (std::min(ny, m) - nymin));	
+
+	} else {
+		//std::cout << "\np=" << p << " m=" << m << " n=" << n << "<<<<<\n";
 
 		double p_ = p;
 		double m_ = m;
@@ -556,10 +563,10 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 		//r = sqrt(-k + n - p) / (sqrt(m) * sqrt(p));
 
 		double nx_ = r * p_;
-		double ny_ = r * m_;		
+		double ny_ = r * m_;
 
 		double res = (m_ * r - 4.0) * (p_ * r - 4.0) + p_ + 5.0;
-		std::cout << r << " " << nx_ << " " << ny_ << " " << res << "<<<<<\n\n";
+		//std::cout << r << " " << nx_ << " " << ny_ << " " << res << "<<<<<\n\n";
 
 		double nxmin = 2 * kx + 2;
 		double nymin = 2 * ky + 2;
@@ -567,16 +574,9 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 		double buffer = 0.0;// double(n) / 100;
 		nx = round(nxmin + q * (nx_ - nxmin - buffer));
 		ny = round(nymin + q * (ny_ - nymin - buffer));
-	} else {
-		nx = nxmin + round(qxy * double(nxmax - nxmin)); // number of knots in the x axis
-		ny = round(double(k + kx * ky + kx - ky * nx + ky - n + p - nx + 1) / double(kx - nx + 1));
-
-		nx = nxmin + round(q * double(std::min(nx, p) - nxmin));
-		ny = nymin + round(q * double(std::min(ny, m) - nymin));	
 	}
 
 	std::cout << "n=" << n << " rate=" << double(WV.W.size()) / double(p + k + (nx - kx - 1) * (ny - ky - 1)) << " x0=" << Xpcs[0] << " x1=" << Xpcs.back() << " p=" << p << " m=" << m << " nx=" << nx << " ny=" << ny << "\n";
-
 
 	int nmax = std::max(nx, ny);
 	std::vector<double> tx(nmax, 0.0);                        // X knots
@@ -601,6 +601,7 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 	}
 
 	#ifdef DEBUG
+		std::cout << "compress 01\n";
 		write_vector(X, "X.csv");
 		write_vector(Y, "Y.csv");
 		write_vector(Z, "Z.csv");
@@ -611,11 +612,13 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 	std::vector<float> CC(C.begin(), C.end());
 
 	#ifdef DEBUG
+		std::cout << "compress 02\n";
 		write_vector(C, "C.csv");
 	#endif
 	tx.resize(nx);
 	ty.resize(ny);
 	#ifdef DEBUG
+		std::cout << "compress 03\n";
 		write_vector(tx, "Tx.csv");
 		write_vector(ty, "Ty.csv");
 	#endif
@@ -627,6 +630,7 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 	data_file.write((char*)&CC[0], CC.size() * sizeof(float));
 	data_file.close();
 	#ifdef DEBUG
+		std::cout << "compress 04\n";
 		write_vector(T, "T.csv");
 	#endif
 }
