@@ -3,11 +3,13 @@
 ## Converting ##
 ################
 
-$name = "15_trumpet.wav"
-# $name = "01_sopranoA.wav"
+# $name = "15_trumpet.wav"
+$name = "01_sopranoA.pc"
 $in = "000_original_samples/" + $name
 
-executables/x64_Release_Compress.exe $in -q .2
+# $item.Name.replace($item.Extension,".hc")
+
+executables/x64_Release_Compress.exe $in -q 1 -qxy 1
 
 exit
 

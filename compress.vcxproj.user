@@ -9,11 +9,11 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>000_original_samples/15_trumpet.wav -q .2</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>000_original_samples/01_sopranoA.wav -q 1</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>000_original_samples/15_trumpet.wav -q .2</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>000_original_samples/01_sopranoA.wav -q 1</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

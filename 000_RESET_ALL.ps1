@@ -34,4 +34,4 @@ $paths =
 
 ./003Compress_PC.ps1
 
-./004Compress.ps1
+# ./004Compress.ps1

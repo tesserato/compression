@@ -523,7 +523,7 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 		if (t > m) {
 			m = t;
 		}
-		double xx = double(i + 1) / double(p + 1);
+		double xx = double(i) / double(p + 1);
 		for (size_t j = Xpcs[i]; j <= Xpcs[i + 1]; j++) {
 			X.push_back(xx);
 			Y.push_back(double(j - Xpcs[i]) / double(t));
@@ -546,8 +546,8 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 		nx = nxmin + (qxy * (nxmax - nxmin)); // number of knots in the x axis
 		ny = (k + kx * ky + kx - ky * nx + ky - n / 2.0 - nx + p + 1) / (kx - nx + 1);
 
-		nx = nxmin + round(q * (std::min(nx, p) - nxmin));
-		ny = nymin + round(q * (std::min(ny, m) - nymin));	
+		nx = nxmin + (q * (std::min(nx, p) - nxmin));
+		ny = nymin + (q * (std::min(ny, m) - nymin));	
 
 	} else {
 		//std::cout << "\np=" << p << " m=" << m << " n=" << n << "<<<<<\n";
@@ -566,8 +566,8 @@ void compress(std::string inpath, std::string outpath, double q, double qxy = -1
 		double nxmin = 2 * kx + 2;
 		double nymin = 2 * ky + 2;
 
-		nx = round(nxmin + q * (nx_ - nxmin));
-		ny = round(nymin + q * (ny_ - nymin));
+		nx = (nxmin + q * (nx_ - nxmin));
+		ny = (nymin + q * (ny_ - nymin));
 	}
 
 	std::cout << "n=" << n << " rate=" << double(WV.W.size()) / double(p + k + (nx - kx - 1) * (ny - ky - 1)) << " x0=" << Xpcs[0] << " x1=" << Xpcs.back() << " p=" << p << " m=" << m << " nx=" << nx << " ny=" << ny << "\n";
