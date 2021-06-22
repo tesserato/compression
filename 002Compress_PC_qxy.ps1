@@ -28,10 +28,10 @@ foreach ($item in $items) {
         "Comp Time / Orig dur"  = $comp_time / $orig_duration
       }
       $name = $item.Name.replace($item.Extension, "")
-      $out = $comp_path + $name + "-q=" + $q.ToString("N2") + "-qxy=" + $qxy.ToString("N2") + "-.pc"
+      $out = $comp_path + $name + "-q=" + $q.ToString("N2") + "-qxy=" + $qxy.ToString("N2") + ".pc"
       Move-Item -Path $inpc -Destination $out -Force
       $comp_size = (Get-Item $out).Length / 1kb
-      $decomp_time = (Measure-Command { executables/x64_Release_Compress.exe $out -a pc | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
+      $decomp_time = (Measure-Command { executables/x64_Release_Compress.exe $out -a .pc | Out-Default } | Select-Object -Property Milliseconds)."Milliseconds"
       $line += [ordered] @{
         "size (KB)"              = $comp_size
         "rate"                   = $orig_size / $comp_size
@@ -39,7 +39,7 @@ foreach ($item in $items) {
         "Decomp Time / Orig dur" = $decomp_time / $orig_duration
       }
 
-      $in  = $comp_path + $name + "-q=" + $q.ToString("N2") + "-qxy=" + $qxy.ToString("N2") + "-pc.wav"
+      $in  = $comp_path + $name + "-q=" + $q.ToString("N2") + "-qxy=" + $qxy.ToString("N2") + ".pc.wav"
       $out = $dcmp_path + $name + "-q=" + $q.ToString("N2") + "-qxy=" + $qxy.ToString("N2") + ".wav"
       Move-Item -Path $in -Destination $out -Force
 
