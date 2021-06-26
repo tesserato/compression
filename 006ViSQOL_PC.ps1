@@ -15,9 +15,9 @@ function visqol {
   )
 
 
-  $sample_number = [int] $o_name.Split("_")[0]
+  # $sample_number = [int] $o_name.Split("_")[0]
 
-  if ($sample_number -le 8) {
+  # if ($sample_number -le 8) {
     # Write-Output "Speech"
     $o_path_c = $temp + "original_speech_mode/" + $o_name
     if (-not (Test-Path $o_path_c)) {
@@ -30,30 +30,31 @@ function visqol {
     }
 
     $obj = & $exe --reference_file $o_path_c --degraded_file $d_path_c --similarity_to_quality_model $model --use_speech_mode
-    $mode = $obj[1]
-    $MOS_LQO = $obj[2].Split(":")[1].Trim()
-  }
-  else {
+    # $mode = $obj[1]
+    $MOS_LQO_s = $obj[2].Split(":")[1].Trim()
+  # }
+  # else {
     # Write-Output "Audio"
     $o_path_c = $temp + "original_audio_mode/" + $o_name
     if (-not (Test-Path $o_path_c)) {
       ffmpeg -loglevel error -hide_banner -y -i ($o_path + $o_name) -ar 48000 $o_path_c
     }
 
-    $d_path_c = $temp + "temp/" + $d_name
+    $d_path_c = $temp + "temp/48k-" +$d_name
     if (-not (Test-Path $d_path_c)) {
       ffmpeg -loglevel error -hide_banner -y -i ($d_path + $d_name) -ar 48000 $d_path_c
     }
 
     $obj = & $exe --reference_file $o_path_c --degraded_file $d_path_c --similarity_to_quality_model $model
-    $mode = $obj[1]
-    $MOS_LQO = $obj[2].Split(":")[1].Trim()
-  }
+    # $mode = $obj[1]
+    $MOS_LQO_a = $obj[2].Split(":")[1].Trim()
+  # }
 
-  return New-Object PsObject -Property @{MOS_LQO = $MOS_LQO ; mode = $mode }
+  return New-Object PsObject -Property @{MOS_LQO_a = $MOS_LQO_a; MOS_LQO_s = $MOS_LQO_s }
 }
 
 $items = Get-ChildItem -Path $path | Where-Object { $_.Extension -eq ".wav" }
+# $items = $items[1..5]
 
 $results = @()
 
@@ -83,8 +84,8 @@ foreach ($item in $items) {
     "Compressed size (KB)" = $compressed_size
     "q"                    = $q
     "Rate"                 = $original_size / $compressed_size
-    "ViSQOL Mode"          = $o.mode
-    "MOS_LQO"              = $o.MOS_LQO
+    "MOS-LQO speech"       = $o.MOS_LQO_s
+    "MOS-LQO audio"        = $o.MOS_LQO_a
     "MSE"                  = [double] $res[0]
     "AVG Absolute Error"   = [double] $res[1]
   }

@@ -11,9 +11,11 @@ def consolidate(path):
   formats = rows[0][1:]
   samples = [r[0] for r in rows[1:]]
 
+  # print(samples)
   cube = []
 
   for file in listdir(path):
+    
     if file.endswith(".csv"):
       csv_file = open(path + file)
       csv_reader = csv.reader(csv_file)
@@ -21,11 +23,15 @@ def consolidate(path):
       matrix = []
       for row in rows[1:]:
         matrix.append(row[1:])
+      matrix = np.array(matrix)
       cube.append(matrix)
+      if matrix.shape != (16, 4):
+        print(file)
+      # print(matrix.shape)
 
   cube = np.array(cube, dtype=int)
-
   print(cube.shape)
+  
 
   result = "sample"
   for fmt in formats:
