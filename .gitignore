@@ -1,4 +1,4 @@
-﻿004_results
+﻿# 004_results
 intermediate
 003_decompressed_samples
 002_compressed_samples
@@ -6,7 +6,7 @@ intermediate
 *.ilk
 *.pdb
 *.exe
-*.csv
+# *.csv
 006_decompressed_samples_PC
 005_compressed_samples_PC
 005_compressed_samples_PC_qxy
@@ -18,3 +18,5 @@ intermediate
 001_ViSQOL/original_audio_mode
 001_ViSQOL/original_speech_mode
 001_ViSQOL/temp
+004_results/Compression_time_milliseconds
+004_results/Decompression_time_milliseconds

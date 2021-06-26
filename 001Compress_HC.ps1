@@ -4,13 +4,13 @@ $path_decompressed = "003_decompressed_samples/"
 $path_result_cmp   = "004_results/Compression_time_milliseconds/"
 $path_result_dec   = "004_results/Decompression_time_milliseconds/"
 
-$start = 826
-$runs = 1000
+$start = 1
+$end = 1
 
 
 $items = Get-ChildItem -Path $path_original | Where-Object {$_.Extension -eq ".wav"} #-Encoding UTF8
 
-for ($ctr = $start ; $ctr -le $runs ; $ctr++){
+for ($ctr = $start ; $ctr -le $end ; $ctr++){
   ###############################################################################################################
   ## COMPRESSING ################################################################################################
   ###############################################################################################################
