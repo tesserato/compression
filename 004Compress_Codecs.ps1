@@ -5,8 +5,8 @@ $comp_path = "009_compressed_samples_codecs/"
 $rsut_path = "010_results_PC/Codecs.csv"
 
 $items = Get-ChildItem -Path $orig_path | Where-Object { $_.Extension -eq ".wav" }
-
-$B = 8, 16, 24, 32, 40, 48, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320
+# $items = $items[0]
+$B = 4, 6, 8, 16, 24, 32, 40, 48, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320
 
 $results = @()
 foreach ($item in $items) {
