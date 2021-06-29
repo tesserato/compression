@@ -15,7 +15,7 @@ foreach ($item in $items) {
   $orig_size = $item.Length / 1kb
   $orig_duration = [double](ffprobe -i $inwav -show_entries format=duration -v quiet -of csv="p=0") * 1000
 
-  for ($i = 1; $i -le 10; $i++) {
+  for ($i = 0; $i -le 10; $i++) {
     $q = $i / 10
     for ($j = 0; $j -le 10; $j++) {
       $qxy = $j / 10
