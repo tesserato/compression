@@ -20,3 +20,7 @@ intermediate
 001_ViSQOL/temp
 004_results/Compression_time_milliseconds
 004_results/Decompression_time_milliseconds
+002_compressed_samples_HC
+003_decompressed_samples_HC
+004_results_HC/Compression_time_milliseconds
+004_results_HC/Decompression_time_milliseconds

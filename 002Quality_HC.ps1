@@ -1,8 +1,8 @@
 $path_original = "000_original_samples/"
 $path_ViSQOL = "001_ViSQOL/"
-$path_compressed = "002_compressed_samples/"
-$path_decompressed = "003_decompressed_samples/"
-$path_results = "004_results/"
+$path_compressed = "002_compressed_samples_HC/"
+$path_decompressed = "003_decompressed_samples_HC/"
+$path_results = "004_results_HC/"
 
 $exe = "C:\Users\tesse\_bazel_tesse\m64zn6ua\execroot\__main__\bazel-out\x64_windows-opt\bin\visqol.exe"
 
@@ -12,8 +12,8 @@ $items = Get-ChildItem -Path $path_original | Where-Object { $_.Extension -eq ".
 $results = @()
 
 foreach ($item in $items) {
-
   $item.Name
+  $original_size = $item.Length / 1kb
 
   $wav_in = $path_original + $item.Name
   $wav_audio = $path_ViSQOL + "original_audio_mode/" + $item.Name
@@ -69,57 +69,80 @@ foreach ($item in $items) {
     ffmpeg -loglevel error -hide_banner -y -i $opus_in -ar 16000 $opus_speech
   }
 
-  # $m4a_in
-  # $m4a_audio
-  # exit
+  # HC ###############
+  $res = (python "metrics.py" $wav_in ($path_decompressed + $item.Name.replace($item.Extension, ".hc.wav"))).Split("-")
+  $compressed_size = (Get-Item ($path_compressed + $item.Name.replace($item.Extension, ".hc"))).Length / 1kb
 
   $obj = & $exe --reference_file $wav_audio --degraded_file $cmp_audio --similarity_to_quality_model $model  
   $line = [ordered] @{
-    Sample     = $item.Name.replace($item.Extension, "")
-    "Audio HC" = $obj[2].Split(":")[1].Trim()
+    Sample                  = $item.Name.replace($item.Extension, "")
+    "Original size (KB)"    = $original_size
+    "HC Rate"               = $original_size / $compressed_size
+    "HC MSE"                = [double] $res[0]
+    "HC AVG Absolute Error" = [double] $res[1]
+    "HC MOS-LQO audio"      = $obj[2].Split(":")[1].Trim()
   }
 
   $obj = & $exe --reference_file $wav_speech --degraded_file $cmp_speech --similarity_to_quality_model $model --use_speech_mode
-  $line += @{
-    "Speech HC" = $obj[2].Split(":")[1].Trim()
+  $line += [ordered] @{
+    "HC MOS-LQO speech" = $obj[2].Split(":")[1].Trim()
   }
 
+  # MP3 ###############
+  $res = (python "metrics.py" $wav_in ($path_decompressed + $item.Name.replace($item.Extension, ".mp3.wav"))).Split("-")
+  $compressed_size = (Get-Item ($path_compressed + $item.Name.replace($item.Extension, ".mp3"))).Length / 1kb
 
   $obj = & $exe --reference_file $wav_audio --degraded_file $mp3_audio --similarity_to_quality_model $model  
-  $line += @{
-    "Audio MP3" = $obj[2].Split(":")[1].Trim()
+  $line += [ordered] @{
+    "MP3 Rate"               = $original_size / $compressed_size
+    "MP3 MSE"                = [double] $res[0]
+    "MP3 AVG Absolute Error" = [double] $res[1]
+    "MP3 MOS-LQO audio"      = $obj[2].Split(":")[1].Trim()
   }
 
   $obj = & $exe --reference_file $wav_speech --degraded_file $mp3_speech --similarity_to_quality_model $model --use_speech_mode
-  $line += @{
-    "Speech MP3" = $obj[2].Split(":")[1].Trim()
+  $line += [ordered] @{
+    "MP3 MOS-LQO speech" = $obj[2].Split(":")[1].Trim()
   }
 
-
+  # ACC ###############
+  $res = (python "metrics.py" $wav_in ($path_decompressed + $item.Name.replace($item.Extension, ".m4a.wav"))).Split("-")
+  $compressed_size = (Get-Item ($path_compressed + $item.Name.replace($item.Extension, ".m4a"))).Length / 1kb
+  
   $obj = & $exe --reference_file $wav_audio --degraded_file $m4a_audio --similarity_to_quality_model $model  
-  $line += @{
-    "Audio AAC" = $obj[2].Split(":")[1].Trim()
+  $line += [ordered] @{
+    "ACC Rate"               = $original_size / $compressed_size
+    "ACC MSE"                = [double] $res[0]
+    "ACC AVG Absolute Error" = [double] $res[1]
+    "ACC MOS-LQO audio"      = $obj[2].Split(":")[1].Trim()
   }
 
   $obj = & $exe --reference_file $wav_speech --degraded_file $m4a_speech --similarity_to_quality_model $model --use_speech_mode
-  $line += @{
-    "Speech AAC" = $obj[2].Split(":")[1].Trim()
+  $line += [ordered] @{
+    "ACC MOS-LQO speech" = $obj[2].Split(":")[1].Trim()
   }
+
+  # Opus ###############
+  $res = (python "metrics.py" $wav_in ($path_decompressed + $item.Name.replace($item.Extension, ".opus.wav"))).Split("-")
+  $compressed_size = (Get-Item ($path_compressed + $item.Name.replace($item.Extension, ".opus"))).Length / 1kb
 
 
   $obj = & $exe --reference_file $wav_audio --degraded_file $opus_audio --similarity_to_quality_model $model  
-  $line += @{
-    "Audio Opus" = $obj[2].Split(":")[1].Trim()
+  $line += [ordered] @{
+    "OPUS Rate"               = $original_size / $compressed_size
+    "OPUS MSE"                = [double] $res[0]
+    "OPUS AVG Absolute Error" = [double] $res[1]
+    "OPUS MOS-LQO audio"      = $obj[2].Split(":")[1].Trim()
   }
 
   $obj = & $exe --reference_file $wav_speech --degraded_file $opus_speech --similarity_to_quality_model $model --use_speech_mode
-  $line += @{
-    "Speech Opus" = $obj[2].Split(":")[1].Trim()
+  $line += [ordered] @{
+    "OPUS MOS-LQO speech" = $obj[2].Split(":")[1].Trim()
   }
 
   $results += New-Object PSObject -Property $line
 }
 
-$results | export-csv -Path ($path_results + "HC_Quality_ViSQOL.csv") -NoTypeInformation
+$results | export-csv -Path ($path_results + "HC_Quality.csv") -NoTypeInformation
 
 
