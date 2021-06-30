@@ -1,11 +1,13 @@
+# This script compresses and decompresses the wav files at $path_original $end - $start times, to obtain the compression / decompression times. The compressed files are saved in $path_compressed, in the .hc (current work), .mp3, .m4a (ACC) and .opus formats. Those files are decompressed and saved as .wav (.hc.wav, .mp3.wav, .m4a.wav and .opus.wav) in $path_decompressed. The results of each compression and decompression run are saved, respectively, at $path_result_cmp and $path_result_dec and are meant to be summarised with the python script "001Consolidate_HC.py"
+
 $path_original     = "000_original_samples/"
 $path_compressed   = "002_compressed_samples/"
 $path_decompressed = "003_decompressed_samples/"
-$path_result_cmp   = "004_results/Compression_time_milliseconds/"
-$path_result_dec   = "004_results/Decompression_time_milliseconds/"
+$path_result_cmp   = "004_results_HC/Compression_time_milliseconds/"
+$path_result_dec   = "004_results_HC/Decompression_time_milliseconds/"
 
 $start = 1
-$end = 1
+$end = 1000
 
 
 $items = Get-ChildItem -Path $path_original | Where-Object {$_.Extension -eq ".wav"} #-Encoding UTF8

@@ -1,8 +1,10 @@
 from os import listdir
 import csv
-# from os.path import isfile, join
-# import signal_envelope as se 
 import numpy as np
+
+''''
+This script consolidates the results of the compressions and decompressions obtained by running 001Compress_HC.ps1
+'''
 
 def consolidate(path):
   csv_file = open(path + "1.csv")
@@ -10,13 +12,12 @@ def consolidate(path):
   rows = [r for r in csv_reader]
   formats = rows[0][1:]
   samples = [r[0] for r in rows[1:]]
-
-  # print(samples)
   cube = []
 
+  n_files = 0
   for file in listdir(path):
-    
     if file.endswith(".csv"):
+      n_files += 1
       csv_file = open(path + file)
       csv_reader = csv.reader(csv_file)
       rows = [r for r in csv_reader]
@@ -25,13 +26,8 @@ def consolidate(path):
         matrix.append(row[1:])
       matrix = np.array(matrix)
       cube.append(matrix)
-      if matrix.shape != (16, 4):
-        print(file)
-      # print(matrix.shape)
 
-  cube = np.array(cube, dtype=int)
-  print(cube.shape)
-  
+  cube = np.array(cube, dtype=int) 
 
   result = "sample"
   for fmt in formats:
@@ -58,16 +54,14 @@ def consolidate(path):
   result += "\nSD"
   for std in np.std(mat, 0):
     result+=f",{std}"
+  return result, n_files
 
-
-  return result
-
-result = consolidate("004_results/Compression_time_milliseconds/")
-f = open("004_results/Compression_time_milliseconds.csv", "w")
+result, n_files = consolidate("004_results_HC/Compression_time_milliseconds/")
+f = open(f"004_results_HC/Compression_time_milliseconds_{n_files}_runs.csv", "w")
 f.write(result)
 f.close()
 
-result = consolidate("004_results/Decompression_time_milliseconds/")
-f = open("004_results/Decompression_time_milliseconds.csv", "w")
+result, n_files = consolidate("004_results_HC/Decompression_time_milliseconds/")
+f = open(f"004_results_HC/Decompression_time_milliseconds_{n_files}_runs.csv", "w")
 f.write(result)
 f.close()

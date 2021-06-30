@@ -1,11 +1,16 @@
 
 
-$wav0 = "001_ViSQOL/original_speech_mode/01_sopranoA.wav"
-$wav1 = "001_ViSQOL/temp/01_sopranoA-q=0.20-qxy=0.00.wav"
+$wav0 = "002_compressed_samples/01_sopranoA.m4a"
+$wav1 = "001_ViSQOL/HC/audio_mode/01_sopranoA.m4a.wav"
+
+
+ffmpeg -loglevel error -hide_banner -y -i $wav0 -ar 48000 $wav1
+
+exit
 
 $res = (python "metrics.py" $wav0 $wav1).Split("-")
 $res
-exit
+
 ################
 ## Converting ##
 ################

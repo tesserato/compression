@@ -1,4 +1,4 @@
-"Sample","Duration (ms)","Size in disk (kb)","Size (kb)","Theor. size (kb)","n","Bit Rate","Sample rate (fps)"
+"Sample","Duration (ms)","Size in disk (kb)","Size (kb)","Theor. size (kb)","n (number of frames)","Bit Rate","Sample rate (fps)"
 "01_sopranoA.wav","2597.778","229734","229734","229168","114562","705600","44100"
 "02_sopranoB.wav","2299.342","203412","203412","202846","101401","705600","44100"
 "03_mezzosoprano.wav","4255.102","375686","375686","375344","187650","705600","44100"
