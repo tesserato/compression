@@ -1,7 +1,5 @@
 
-################
-## Converting ##
-################
+# This script runs all necessary 
 
 $paths = 
 "001_ViSQOL/HC/audio_mode/",
