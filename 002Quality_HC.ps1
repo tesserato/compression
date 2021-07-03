@@ -47,6 +47,7 @@ foreach ($item in $items) {
     ffmpeg -loglevel error -hide_banner -y -i $mp3_in -ar 16000 $mp3_speech
   }
 
+  
   $m4a_in = $path_compressed + $item.Name.replace($item.Extension, ".m4a")
   $m4a_audio = $path_ViSQOL + "HC/audio_mode/" + $item.Name.replace($item.Extension, ".m4a.wav")
   if (-not (Test-Path $m4a_audio)) {
@@ -56,7 +57,6 @@ foreach ($item in $items) {
   if (-not (Test-Path $m4a_speech)) {
     ffmpeg -loglevel error -hide_banner -y -i $m4a_in -ar 16000 $m4a_speech
   }
-
 
 
   $opus_in = $path_compressed + $item.Name.replace($item.Extension, ".opus")
@@ -77,9 +77,10 @@ foreach ($item in $items) {
   $line = [ordered] @{
     Sample                  = $item.Name.replace($item.Extension, "")
     "Original size (KB)"    = $original_size
+    "HC Size (KB)"          = $compressed_size
     "HC Rate"               = $original_size / $compressed_size
     "HC MSE"                = [double] $res[0]
-    "HC AVG Absolute Error" = [double] $res[1]
+    "HC Absolute Error" = [double] $res[1]
     "HC MOS-LQO audio"      = $obj[2].Split(":")[1].Trim()
   }
 
@@ -94,9 +95,10 @@ foreach ($item in $items) {
 
   $obj = & $exe --reference_file $wav_audio --degraded_file $mp3_audio --similarity_to_quality_model $model  
   $line += [ordered] @{
+    "MP3 Size (KB)"          = $compressed_size
     "MP3 Rate"               = $original_size / $compressed_size
     "MP3 MSE"                = [double] $res[0]
-    "MP3 AVG Absolute Error" = [double] $res[1]
+    "MP3 Absolute Error" = [double] $res[1]
     "MP3 MOS-LQO audio"      = $obj[2].Split(":")[1].Trim()
   }
 
@@ -111,9 +113,10 @@ foreach ($item in $items) {
   
   $obj = & $exe --reference_file $wav_audio --degraded_file $m4a_audio --similarity_to_quality_model $model  
   $line += [ordered] @{
+    "ACC Size (KB)"          = $compressed_size
     "ACC Rate"               = $original_size / $compressed_size
     "ACC MSE"                = [double] $res[0]
-    "ACC AVG Absolute Error" = [double] $res[1]
+    "ACC Absolute Error" = [double] $res[1]
     "ACC MOS-LQO audio"      = $obj[2].Split(":")[1].Trim()
   }
 
@@ -129,9 +132,10 @@ foreach ($item in $items) {
 
   $obj = & $exe --reference_file $wav_audio --degraded_file $opus_audio --similarity_to_quality_model $model  
   $line += [ordered] @{
+    "OPUS Size (KB)"          = $compressed_size
     "OPUS Rate"               = $original_size / $compressed_size
     "OPUS MSE"                = [double] $res[0]
-    "OPUS AVG Absolute Error" = [double] $res[1]
+    "OPUS Absolute Error" = [double] $res[1]
     "OPUS MOS-LQO audio"      = $obj[2].Split(":")[1].Trim()
   }
 
@@ -139,10 +143,9 @@ foreach ($item in $items) {
   $line += [ordered] @{
     "OPUS MOS-LQO speech" = $obj[2].Split(":")[1].Trim()
   }
-
   $results += New-Object PSObject -Property $line
 }
 
-$results | export-csv -Path ($path_results + "HC_Quality.csv") -NoTypeInformation
+$results | export-csv -Path ($path_results + "Quality.csv") -NoTypeInformation
 
 

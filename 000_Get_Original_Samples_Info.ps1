@@ -12,10 +12,13 @@ foreach ($item in $items) {
   $info = ffprobe -v error -show_format -show_streams ($orig_path + $item.Name)
 
   [double]$bytes_per_sample = [double]$info[13].Split("=")[1] / 8.0
-  [double]$n = $info[20].Split("=")[1]
+  [int]$n = $info[20].Split("=")[1]
+  [double]$har = (python "harmonicity.py" ($orig_path + $item.Name))
+
 
   $line = [ordered] @{
-    Sample                 = $item.Name
+    "Sample"               = $item.Name
+    "Harmonicity"          = $har
     "Duration (ms)"        = [double]$info[48].Split("=")[1] * 1000
     "Size in disk (kb)"    = $item.Length #/ 1kb
     "Size (kb)"            = $info[49].Split("=")[1]

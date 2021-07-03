@@ -1,4 +1,3 @@
-
 # This script runs all necessary 
 
 $paths = 
