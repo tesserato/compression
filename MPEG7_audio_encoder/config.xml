@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Config 
+  xmlns="http://mpeg7audioenc.sf.net/mpeg7audioenc.xsd"
+  xmlns:mp7ae="http://mpeg7audioenc.sf.net/mpeg7audioenc.xsd"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://mpeg7audioenc.sf.net/mpeg7audioenc.xsd
+  	http://mpeg7audioenc.sf.net/mpeg7audioenc.xsd">
+
+<!-- set hop size for all modules -->
+<Module xsi:type="Resizer">
+  <HopSize>10</HopSize>
+</Module>
+
+<!-- Enable AudioWaveformType -->
+<Module xsi:type="AudioHarmonicity" mp7ae:enable="true" />
+
+<!-- Enable AudioSpectrumEnvelope with loEdge=62.5Hz, hiEdge=16kHz and ocave resolution=1.0 -->
+<!-- <Module xsi:type="AudioSpectrumEnvelope" mp7ae:enable="true">
+  <loEdge>62.5</loEdge>
+  <hiEdge>16000.0</hiEdge>
+  <resolution>1.0</resolution>
+</Module> -->
+
+</Config>

@@ -3,6 +3,23 @@
 $orig_path = "000_original_samples/"
 $rsut_path = "000_Original_Samples_Info.csv"
 
+Function AverageHarmonicRatio($in) {
+  [xml]$xml = java -jar "MPEG7_audio_encoder/MPEG7AudioEnc-0.4-rc3.jar" $in "MPEG7_audio_encoder\config.xml"
+
+  $hr = $xml.Mpeg7.Description.MultimediaContent.Audio.AudioDescriptor.HarmonicRatio.SeriesOfScalar.Raw.Split(" ")
+
+  # $hratios.GetType()
+
+  [double]$RunningTotal = 0.0
+  foreach ($r in $hr) {
+    [double]$d = $r
+    $RunningTotal += $d
+  }
+
+  return ($RunningTotal) / [double]($hr.Length)
+}
+
+
 $items = Get-ChildItem -Path $orig_path | Where-Object { $_.Extension -eq ".wav" }
 
 
@@ -13,19 +30,20 @@ foreach ($item in $items) {
 
   [double]$bytes_per_sample = [double]$info[13].Split("=")[1] / 8.0
   [int]$n = $info[20].Split("=")[1]
+  [double]$harmpeg7 = AverageHarmonicRatio($orig_path + $item.Name)
   [double]$har = (python "harmonicity.py" ($orig_path + $item.Name))
 
-
   $line = [ordered] @{
-    "Sample"               = $item.Name
-    "Harmonicity"          = $har
-    "Duration (ms)"        = [double]$info[48].Split("=")[1] * 1000
-    "Size in disk (kb)"    = $item.Length #/ 1kb
-    "Size (kb)"            = $info[49].Split("=")[1]
-    "Theor. size (kb)"     = 44 + ($bytes_per_sample * $n) #/ 1kb
-    "n (number of frames)" = $n
-    "Bit Rate"             = $info[22].Split("=")[1]
-    "Sample rate (fps)"    = $info[10].Split("=")[1]
+    "Sample"                 = $item.Name
+    "Avg Harmonicity MPEG-7" = $harmpeg7
+    "Harmonicity"            = $har
+    "Duration (ms)"          = [double]$info[48].Split("=")[1] * 1000
+    "Size in disk (kb)"      = $item.Length #/ 1kb
+    "Size (kb)"              = $info[49].Split("=")[1]
+    "Theor. size (kb)"       = 44 + ($bytes_per_sample * $n) #/ 1kb
+    "n (number of frames)"   = $n
+    "Bit Rate"               = $info[22].Split("=")[1]
+    "Sample rate (fps)"      = $info[10].Split("=")[1]
   }
   $results += New-Object PSObject -Property $line
 
