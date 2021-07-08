@@ -5,7 +5,7 @@ Repository for the .hc (Harmonic Compression) and .pc (Pseudo cycles based compr
 # Installation
 The executable for Windows 64 bits OS can be downloaded in the releases section, along with the necessary libsndfile-1.dll, as a .zip archive. Those can be unpacked to a convenient folder and referenced via relative paths, or manually added to the system path.
 
-For other OSs, it should be possible to compile the source code via the Visual Studio solution.
+For other OSes, it should be possible to compile the source code via the Visual Studio solution.
 
 # Usage
 
@@ -16,7 +16,8 @@ The generated
 ## Harmonic Compression
 
 Scripts 001* to 003* are related to this paper, and generate the data presented.
-<!-- TODO site .hc-->
+
+Results can be heard at [harmoniccompression.firebaseapp.com](https://harmoniccompression.firebaseapp.com/) or [harmoniccompression.web.app](https://harmoniccompression.web.app/)
 
 
 ## Pseudo cycles based compression
