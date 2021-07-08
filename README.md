@@ -1,4 +1,4 @@
-# [![DOI](https://zenodo.org/badge/345205732.svg)](https://zenodo.org/badge/latestdoi/345205732)
+[![DOI](https://zenodo.org/badge/370571978.svg)](https://zenodo.org/badge/latestdoi/370571978)
 
 Repository for the .hc (Harmonic Compression) and .pc (Pseudo cycles based compression). Since the codebases for both formats share a considerable portion of the code (.wav reading, saving, segmentation of pseudo cycles, etc), the authors decided to unify development in a single repository, and release a single executable for both codecs.
 
