@@ -735,7 +735,7 @@ void print_help() {
 		<< " -[a string] [-csv] [path/to/file_1.wav]...[path/to/file_n.wav]  [path/to/file_1" << HCEXT << "]...[path/to/file_m" << HCEXT << "]\n"
 		<< " -a or --append: (default \"" << APPEND << "\") string to be appended to each reconstructed file name\n"
 		<< " -q or --quality: 0.0 <= q <= 1.0. If supplied, " << PCEXT << " mode is used, with quality q\n"
-		<< " -csv: flag to turn on saveing csv files with the beginning of each pseudo cycle, envelope and average waveform\n"
+		<< " -csv: flag to turn on saving csv files with the beginning of each pseudo cycle, envelope and average waveform\n"
 		<< " If no path is given, the root folder will be scanned for .wav and " << HCEXT << " files, and those will be processed accordingly\n";
 
 
