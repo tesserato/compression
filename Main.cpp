@@ -225,8 +225,9 @@ v_pint compress_fd(const v_real& W) {
 		std::cout << "Warning: this signal doesn't seem periodic!"; // text
 		T = 0.1 * W.size();
 	}
-
-	v_real conv(6 * T, 0.0);
+	#ifdef DEBUG
+		v_real conv(6 * T, 0.0);
+	#endif
 	real conv_val{ 0.0 };
 	real best_val{ 0.0 };
 	real best_offset{ 0.0 };
@@ -235,7 +236,9 @@ v_pint compress_fd(const v_real& W) {
 		for (size_t i = 0; i < W.size() - offset; i++) {
 			conv_val += W[i] * W[i + offset];
 		}
-		conv[offset] = conv_val;
+		#ifdef DEBUG
+			conv[offset] = conv_val;
+		#endif
 		if (conv_val > best_val) {
 			best_val = conv_val;
 			best_offset = offset;
@@ -259,32 +262,19 @@ v_pint compress_fd(const v_real& W) {
 		v_real phases;
 		v_real amplitudes;
 	#endif // v
-
-	real p{ 0.0 };
+	//real p{ 0.0 };
 	float best_p{ 0.0 };
 	pint best_x{ 0 };
 	bool inside_peak = false;
 	while (x0 + T <= n) {
-
 		fpa = rfft(W.begin() + x0, W.begin() + x0 + T);
-
-		//adjust = 1;
-		//while (fpa[0] > 1) {
-		//	fpa = rfft(W.begin() + x0, W.begin() + x0 + T - adjust);
-		//	adjust++;
-		//}
-		//adjust = 1;
-		//while (fpa[0] <= 0 && x0 + T + adjust < W.size()) {
-		//	fpa = rfft(W.begin() + x0, W.begin() + x0 + T + adjust);
-		//	adjust++;
-		//}
 
 		#ifdef DEBUG	
 			phases.push_back(fpa[1]);
 			amplitudes.push_back(fpa[2]);
 		#endif // v
 
-		if (std::pow(fpa[1], 3.0) > 25.0) {
+		if (fpa[1] > 2.92401773821) {
 			if (fpa[1] > best_p){
 				best_p = fpa[1];
 				best_x = x0;
@@ -830,7 +820,7 @@ int main(int argc, char** argv) {
 			write_bin(path, WV.W.size(), WV.fps, Xpcs, Waveform, Envelope);
 
 			if (save_csv) {
-				path.replace(path.end() - 4, path.end(), ".csv");
+				path.replace(path.end() - 3, path.end(), ".csv");
 				write_vector(Xpcs, path);
 			}
 
