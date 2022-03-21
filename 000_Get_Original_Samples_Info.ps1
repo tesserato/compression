@@ -42,10 +42,11 @@ foreach ($item in $items) {
     "Size (kb)"              = $info[49].Split("=")[1]
     "Theor. size (kb)"       = 44 + ($bytes_per_sample * $n) #/ 1kb
     "n (number of frames)"   = $n
-    "Bit Rate"               = $info[22].Split("=")[1]
+    "Theoretical Bit Rate"   = $info[22].Split("=")[1]
+    "Measured Bit Rate"      = [double](8 * $item.Length / $info[48].Split("=")[1])
     "Sample rate (fps)"      = $info[10].Split("=")[1]
   }
   $results += New-Object PSObject -Property $line
 
 }
-$results | export-csv -Path $rsut_path -NoTypeInformation
+$results | export-csv -Delimiter ';' -Encoding UTF8 -Path $rsut_path -NoTypeInformation

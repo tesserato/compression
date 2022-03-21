@@ -1,12 +1,12 @@
 [![DOI](https://zenodo.org/badge/370571978.svg)](https://zenodo.org/badge/latestdoi/370571978)
 
-Repository for the HC (Harmonic Compression) and PC (Pseudo cycles based compression). Since the codebases for both formats share a considerable portion of the code (.wav reading, saving, segmentation of pseudo cycles, etc), the authors decided to unify development in a single repository, and release a single executable for both codecs.
+Repository for the HC (Harmonic Compression) and PC (Pseudo cycles based compression) codecs. Since the codebases for both formats share a considerable portion of the code (.wav reading, saving, segmentation into pseudo cycles, etc), the authors decided to unify development in a single repository, and release a single executable for both codecs.
 
 # Installation
 
 The executable for Windows OS 64 bits can be downloaded in the releases section, along with the necessary libsndfile-1.dll, as a .zip archive. Those can be unpacked to a convenient folder and referenced via relative paths, or manually added to the system path.
 
-For other OSes, it should be possible to compile the source code via the Visual Studio solution. Not all C++ dependencies are included in the repository. Those that are pointed by relative paths, starting with "$(SolutionDir)".
+For other OSes, it should be possible to compile the source code via the Visual Studio solution. Not all C++ dependencies are included in the repository, however: only those that are pointed by relative paths, starting with "$(SolutionDir)".
 
 # Usage
 
@@ -24,7 +24,7 @@ If no path is given, the root folder will be scanned for .wav and .hc files, and
 
 ## Harmonic Compression
 
-Scripts 001* to 003* are related to this method, and generate the data presented.
+Scripts 001* to 003* are related to this method, and generate the data available at "004_results_HC".
 
 Results can be heard at [harmoniccompression.firebaseapp.com](https://harmoniccompression.firebaseapp.com/) or [harmoniccompression.web.app](https://harmoniccompression.web.app/)
 
