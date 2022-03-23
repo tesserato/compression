@@ -6,7 +6,7 @@ sample_names = [n.split("\\")[-1].replace(".wav","") for n in glob.glob("./000_o
 
 print(sample_names)
 
-csv = "Sample;Wav bps;HC bps;AAC bps;MP3 bps;Opus bps\n"
+csv = "Sample,Wav bps,HC bps,AAC bps,MP3 bps,Opus bps\n"
 for name in sample_names:
   wav_size  = os.path.getsize(f"./000_original_samples/{name}.wav")
   hc_size   = os.path.getsize(f"./002_compressed_samples_HC/{name}.hc")
@@ -30,7 +30,7 @@ for name in sample_names:
   # print(opus_info)
 
   # exit()
-  csv+=f"{name};{wav_info['bit_rate']};{hc_kbps};{m4a_info['bit_rate']};{mp3_info['bit_rate']};{opus_info['bit_rate']}\n"
+  csv+=f"{name},{wav_info['bit_rate']},{hc_kbps},{m4a_info['bit_rate']},{mp3_info['bit_rate']},{opus_info['bit_rate']}\n"
 
 with open('./004_results_HC/Bitrates.csv', 'w') as f:
   f.write(csv)
